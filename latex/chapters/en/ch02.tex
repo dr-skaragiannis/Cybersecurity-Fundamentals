@@ -1,0 +1,92 @@
+% ============================================================
+% Chapter 2: Operating System Security: POSIX and Windows Architecture
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Operating System Security: POSIX and Windows Architecture}\label{ch:2}
+\chaptermeta{Discretionary access control · Special permission bits · ACLs and capabilities · Mandatory controls · Windows tokens, UAC and integrity levels}{Level: Beginner–Intermediate · Systems}{Study time: 7–9 hours}
+
+The operating system is the first concrete security boundary a student meets. Every file, process and network socket is ultimately mediated by the kernel, which decides who may do what. If the operating system's access control is misconfigured, higher-level defences such as firewalls or antivirus software can often be bypassed with little effort.
+
+This chapter compares the two dominant families of access control. It first explains the POSIX model used by Linux, macOS and other Unix-like systems, including the special permission bits that are a frequent source of privilege escalation. It then moves beyond simple permission modes to access control lists, Linux capabilities and mandatory access control frameworks. The second half is devoted to Windows: security identifiers, access tokens, User Account Control, the registry and mandatory integrity levels.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Read, interpret and set POSIX permissions in both symbolic and octal notation.
+  \item Explain the purpose and the risks of the SetUID, SetGID and sticky bits.
+  \item Describe how ACLs, capabilities and mandatory access control (SELinux, AppArmor) refine the basic permission model.
+  \item Explain the roles of SIDs, access tokens, UAC and integrity levels in Windows.
+  \item Identify common operating-system misconfigurations that enable privilege escalation or lateral movement.
+\end{itemize}
+\end{outcomesbox}
+
+\section{POSIX discretionary access control: model and mechanics}\label{sec:2.1}
+POSIX systems implement \textbf{discretionary access control (DAC)}: the owner of a file decides who else may access it. Every file carries an owner (a user ID), a group (a group ID) and three sets of permission bits—for the \emph{owner}, the \emph{group} and \emph{others}. Each set contains three rights: \textbf{read (r)}, \textbf{write (w)} and \textbf{execute (x)}. For directories the meaning changes slightly: read allows listing the names, write allows creating or deleting entries, and execute allows entering the directory and reaching files inside it.
+
+Permissions are commonly written in octal, where read = 4, write = 2 and execute = 1. The mode \texttt{640} therefore means \emph{rw-} for the owner, \emph{r--} for the group and \emph{---} for everyone else—a typical setting for a configuration file that contains secrets. When a process requests access, the kernel checks the categories in order (owner, then group, then others) and applies only the \emph{first} category that matches. As a result, an owner who has removed their own read permission is denied access even if 'others' could read the file.
+
+\begin{examplebox}{Worked example}
+The command \texttt{chmod 750 /srv/reports} gives the owner full control (7 = 4+2+1), allows group members to list and enter the directory (5 = 4+1), and denies all access to other users (0). A web server running as an unrelated account will therefore be unable to read the reports, even if a vulnerability allows it to guess their path.
+\end{examplebox}
+
+\section{Special permissions: SetUID, SetGID and the sticky bit}\label{sec:2.2}
+Three additional bits modify how the basic permissions behave. The \textbf{SetUID} bit (octal 4000) causes an executable to run with the privileges of its \emph{owner} rather than of the user who launched it. This is how an ordinary user can change their own password with \texttt{passwd}, a program owned by root that must write to the protected \texttt{/etc/shadow} file. The \textbf{SetGID} bit (2000) works analogously for the group; on a directory it also makes new files inherit the directory's group, which is useful for shared project folders. The \textbf{sticky bit} (1000) on a world-writable directory such as \texttt{/tmp} allows users to delete only the files they own.
+
+SetUID programs owned by root are among the most attractive targets for attackers, because any flaw in them—a buffer overflow, an unsafe call to another program, a writable library path—immediately yields full administrative control. For this reason, system administrators should periodically inventory them (for example with \texttt{find / -perm -4000 -type f}), remove the bit wherever it is not strictly necessary, and prefer finer-grained mechanisms such as capabilities.
+
+\section{Beyond permission modes: ACLs, capabilities and mandatory access control}\label{sec:2.3}
+The owner–group–others model is simple, but it cannot express rules such as \emph{Alice may read this file and Bob may write it, but no one else may do either}. \textbf{POSIX access control lists (ACLs)} solve this by attaching additional entries for named users and groups, managed with \texttt{setfacl} and inspected with \texttt{getfacl}. A \emph{mask} entry limits the maximum rights any named entry can receive, which allows administrators to tighten access quickly.
+
+\textbf{Linux capabilities} divide the all-powerful root privilege into roughly forty independent units. A web server that only needs to bind to port 80 can receive \texttt{CAP\_NET\_BIND\_SERVICE} instead of running as root, so that a compromise of the server does not grant control over the whole system. Finally, \textbf{mandatory access control (MAC)} frameworks such as \textbf{SELinux} and \textbf{AppArmor} enforce a system-wide policy that even the file owner cannot override. Under MAC, a compromised process remains confined to the resources its policy explicitly allows—an application of the fail-safe defaults principle introduced in Chapter 1.
+
+\section{Windows security architecture: identities, tokens, UAC and the registry}\label{sec:2.4}
+Windows identifies every user, group and computer by a \textbf{security identifier (SID)}, a unique value that remains stable even if the account is renamed. When a user logs on, the Local Security Authority creates an \textbf{access token} that lists the user's SID, group SIDs and privileges. Every process the user starts inherits a copy of this token. Objects such as files, registry keys and services carry a \textbf{security descriptor} whose \textbf{discretionary access control list (DACL)} contains allow and deny entries. When a process requests access, the Security Reference Monitor compares the token against the DACL; explicit deny entries are evaluated before allow entries.
+
+\textbf{User Account Control (UAC)} addresses a historical problem: for years, most Windows users worked permanently as administrators. With UAC, an administrator receives two tokens at logon—a \emph{filtered} standard-user token used for everyday work and a \emph{full} token that is activated only after explicit consent. The \textbf{registry}, the hierarchical database that stores system and application configuration, is protected by the same security descriptors. Registry keys such as \texttt{HKLM\textbackslash{}...\textbackslash{}Run} are a favourite persistence location for malware, which is why their permissions and changes must be monitored.
+
+\section{Windows in depth: integrity levels, privileges and the lateral-movement surface}\label{sec:2.5}
+Since Windows Vista, every process and object also carries a \textbf{mandatory integrity level}: \emph{Low}, \emph{Medium}, \emph{High} or \emph{System}. A process may not write to an object with a higher integrity level, regardless of what the DACL says. This is a direct application of the Biba model (Chapter 1). Web browsers exploit it by running content-rendering processes at Low integrity, so that malicious web content cannot modify user files even if it achieves code execution.
+
+Certain \textbf{privileges} in a token are so powerful that they are effectively equivalent to full control. \texttt{SeDebugPrivilege} allows reading the memory of any process—including LSASS, where credentials are cached—while \texttt{SeImpersonatePrivilege} and \texttt{SeBackupPrivilege} have repeatedly been abused for privilege escalation. In a domain, these local weaknesses become a network problem: cached credentials, shared local administrator passwords and remote administration protocols (SMB, WMI, WinRM, RDP) allow an attacker to move laterally from one compromised workstation to many others. Countermeasures include unique local administrator passwords (Windows LAPS), Credential Guard, tiered administration and restricting which accounts may log on to which systems.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{POSIX and Windows access control compared}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Aspect} & \textbf{POSIX (Linux)} & \textbf{Windows} \\
+    \midrule
+    Identity & UID / GID & SID \\
+    Per-object policy & Mode bits + optional ACL & Security descriptor with DACL \\
+    Privilege elevation & SetUID, sudo, capabilities & UAC consent, privileges in token \\
+    Mandatory control & SELinux, AppArmor & Integrity levels, AppContainer \\
+    Common escalation path & Vulnerable SetUID binary & Abused token privilege, weak service ACL \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[DAC] Discretionary access control: the owner of a resource decides who may access it.
+  \item[SetUID] Permission bit that makes a program run with its owner's privileges.
+  \item[Capability (Linux)] An individual unit of root privilege that can be granted separately.
+  \item[MAC] Mandatory access control: a system-wide policy that owners cannot override (SELinux, AppArmor).
+  \item[Access token] Windows structure that carries a process's identity, group memberships and privileges.
+  \item[Integrity level] Windows label (Low–System) that prevents lower-integrity processes from writing to higher-integrity objects.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item POSIX systems control access through owner, group and others permissions; the first matching category decides.
+  \item SetUID and SetGID are necessary in a few places but are a prime target for privilege escalation and must be inventoried.
+  \item ACLs add fine-grained discretionary rules, capabilities split root privilege, and MAC confines even compromised processes.
+  \item Windows combines SIDs, access tokens and DACLs; UAC separates everyday work from administrative actions.
+  \item Integrity levels and careful privilege management limit both local escalation and lateral movement across a domain.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item A file has mode \texttt{604} and is owned by alice. Can alice read it? Can bob? Explain the evaluation order that produces your answer.
+  \item Why is a vulnerable root-owned SetUID binary more dangerous than the same vulnerability in an ordinary program?
+  \item Compare Linux capabilities with Windows token privileges. Which security principle do both mechanisms implement?
+  \item Explain how shared local administrator passwords enable lateral movement, and describe two countermeasures.
+\end{enumerate}

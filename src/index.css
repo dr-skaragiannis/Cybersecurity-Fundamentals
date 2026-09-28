@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Noto Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html { scroll-behavior: smooth; }
+body { @apply bg-stone-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased; }
+
+/* =========================================================================
+   CUSTOM THEMED SCROLLBARS (LIGHT & DARK / TEAL CYBERSECURITY PALETTE)
+   ========================================================================= */
+
+/* Firefox standard scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+}
+
+.dark * {
+  scrollbar-color: rgba(45, 212, 191, 0.35) rgba(15, 23, 42, 0.5);
+}
+
+/* WebKit / Chromium / Safari global scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.5);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(13, 148, 136, 0.85);
+  box-shadow: 0 0 6px rgba(13, 148, 136, 0.3);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark mode specific scrollbars */
+.dark ::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.75);
+  border: 1px solid rgba(15, 23, 42, 0.4);
+  background-clip: padding-box;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.65);
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.35);
+}
+
+.dark ::-webkit-scrollbar-thumb:active {
+  background: rgba(45, 212, 191, 0.95);
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.6);
+}
+
+/* Slim scrollbar helper utility */
+.scroll-thin::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+}
+
+.prose-book { font-family: var(--font-serif); line-height: 1.8; }
+.prose-book p { margin: 0 0 1.05em; text-align: justify; hyphens: auto; }
+.prose-book strong { @apply font-semibold text-slate-900 dark:text-white; }
+.prose-book em { @apply italic; }
+.prose-book code { @apply font-mono text-[0.85em] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-teal-800 dark:text-teal-300; }
+
+.section-anchor { scroll-margin-top: 5.5rem; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.fade-up { animation: fadeUp .35s ease both; }
+
+@page {
+  size: A4;
+  margin: 18mm 14mm 18mm 14mm;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  main { margin: 0 !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+  body { background: #ffffff !important; color: #000000 !important; }
+  
+  .page-break { page-break-after: always; break-after: page; }
+  .page-break-before { page-break-before: always; break-before: page; }
+  .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+  
+  /* Ensure background colors and borders render in print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

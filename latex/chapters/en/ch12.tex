@@ -1,0 +1,78 @@
+% ============================================================
+% Chapter 12: Malware Analysis, Digital Forensics and OSINT Reconnaissance
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Malware Analysis, Digital Forensics and OSINT Reconnaissance}\label{ch:12}
+\chaptermeta{Static triage · Dynamic and behavioural analysis · Passive and active reconnaissance · DNS enumeration · OSINT ethics · Order of volatility · Timelines and carving}{Level: Advanced · Investigation}{Study time: 10–12 hours}
+
+When an incident occurs, three investigative questions arise. What does the malicious code do? What can the organisation's exposure reveal to an adversary? And what exactly happened on the affected systems? This chapter introduces the disciplines that answer them: malware analysis, open-source intelligence (OSINT) reconnaissance and digital forensics.
+
+The three disciplines share a common ethic. Analysts work in controlled environments, collect information lawfully and handle evidence in a way that preserves its integrity and admissibility. The chapter moves from static and dynamic analysis of a suspicious file, through the mapping of an organisation's external attack surface, to the principles of forensic acquisition and the reconstruction of events from filesystem artefacts.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Perform static triage of a suspicious file using hashes, headers, entropy and strings.
+  \item Design a safe dynamic analysis and interpret behavioural artefacts.
+  \item Distinguish passive from active reconnaissance and map an organisation's attack surface through DNS and search-engine techniques.
+  \item Apply legal, ethical and operational-security rules to OSINT work.
+  \item Apply the order of volatility and chain of custody, and build a timeline from filesystem artefacts.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Static triage: hashes, headers, entropy, strings and packers}\label{sec:12.1}
+\textbf{Static analysis} examines a file without executing it and is always the first, safest step. The analyst begins by computing \textbf{cryptographic hashes} (SHA-256) to identify the sample uniquely and to check threat-intelligence databases for previous reports. Next, the file \textbf{header} reveals its true type regardless of its extension: Windows executables begin with the bytes \texttt{MZ}, and their \emph{Portable Executable (PE)} structure lists compilation timestamps, sections and imported functions. Imports such as \texttt{VirtualAllocEx} and \texttt{CreateRemoteThread} hint at process injection; \texttt{CryptEncrypt} together with file-enumeration functions may suggest ransomware.
+
+\textbf{Entropy} measures randomness on a scale from 0 to 8 bits per byte. Ordinary code has moderate entropy, whereas sections with entropy close to 8 are likely compressed or encrypted—a typical sign of a \textbf{packer}, a tool that wraps the real payload so that it is revealed only in memory. Extracting readable \textbf{strings} can expose URLs, IP addresses, registry paths or error messages, although malware authors often obfuscate them. When deeper understanding is needed, \textbf{disassemblers and decompilers} such as Ghidra or IDA translate machine code into assembly or pseudo-C, allowing the analyst to follow the program's logic.
+
+\section{Dynamic and behavioural analysis}\label{sec:12.2}
+\textbf{Dynamic analysis} executes the sample in the isolated laboratory described in Chapter 11 and observes what it does. Automated \textbf{sandboxes} such as CAPE or commercial equivalents run the file, record its activity and produce a report within minutes. Manual analysis gives more control: the analyst takes a snapshot, starts monitoring tools, executes the sample, interacts with it if necessary and then compares the system state before and after execution.
+
+\textbf{Behavioural auditing} focuses on the traces the sample leaves. On the filesystem, analysts look for dropped files and modified documents; in the registry, for new \emph{Run} keys or services; in the process tree, for child processes and injection into legitimate processes; and on the network, for DNS queries and connections to command-and-control servers. Tools such as Process Monitor, Process Explorer, Regshot and Wireshark capture these events, while API monitoring reveals which system functions the malware calls. Analysts must remember that sophisticated malware may detect the sandbox—by checking for virtual hardware, short uptimes or the absence of user activity—and remain dormant, so a 'clean' sandbox report is never proof of innocence.
+
+\section{Reconnaissance: passive and active techniques, dorking and DNS}\label{sec:12.3}
+Reconnaissance is the first phase of the Kill Chain, and defenders perform it too, in order to see their organisation as an attacker would. \textbf{Passive reconnaissance} gathers information without interacting directly with the target's systems: public websites, social media, job advertisements that reveal technologies in use, WHOIS records, certificate-transparency logs and internet-wide scan databases such as Shodan or Censys. \textbf{Active reconnaissance} interacts with the target—port scanning, banner grabbing, directory brute-forcing—and is therefore detectable and legally permissible only with authorisation.
+
+Search engines are powerful reconnaissance tools. \textbf{Google dorking} uses advanced operators such as \texttt{site:}, \texttt{filetype:} and \texttt{intitle:} to find exposed documents, login pages, configuration files or directory listings that were never meant to be public. \textbf{DNS enumeration} maps an organisation's internet presence: querying record types (A, MX, TXT, NS), discovering subdomains through certificate-transparency logs and passive-DNS databases, and testing whether misconfigured name servers allow \emph{zone transfers} that reveal every record. Forgotten subdomains that still point to decommissioned cloud resources can even be \emph{taken over} by an attacker—a risk that regular attack-surface reviews are designed to catch.
+
+\section{OSINT ethics, operational security and actionable reporting}\label{sec:12.4}
+That information is publicly accessible does not mean it may be collected and used without limits. OSINT work must respect the law—data-protection rules such as the GDPR apply to personal data even when they are public—as well as the terms of service of platforms and the agreed scope of the engagement. Analysts should collect only what is necessary for the stated purpose and never attempt to access accounts or bypass access controls, which would turn reconnaissance into intrusion.
+
+\textbf{Operational security (OPSEC)} protects the investigation itself: analysts use dedicated research environments and accounts, avoid revealing their identity or organisation to the target, and document their sources with timestamps and archived copies so that findings are reproducible. The value of reconnaissance lies in what follows. An \textbf{attack-surface report} should translate findings into prioritised, owned remediation tickets—'decommission the dangling subdomain \texttt{old-shop.example.com}', 'remove the exposed backup file'—rather than presenting an undifferentiated list of discoveries.
+
+\section{Forensic principles, the order of volatility and chain of custody}\label{sec:12.5}
+\textbf{Digital forensics} is the scientific collection, preservation, analysis and presentation of digital evidence in a manner that can withstand legal scrutiny. Its foundational principle, derived from Locard's exchange principle, is that every action leaves a trace—including the actions of the investigator. Evidence must therefore be acquired in a way that changes it as little as possible, and every step must be documented. Disks are copied bit by bit into forensic images using \textbf{write blockers}, and each image is verified by comparing its hash with that of the original.
+
+Because some data disappear faster than others, evidence is collected according to the \textbf{order of volatility} (RFC 3227): first CPU registers and cache, then memory (RAM), including running processes and network connections; then temporary files and swap space; then disk contents; and finally remote logs and archival media. Pulling the power cable first would destroy the most volatile—and often the most revealing—evidence. Every item is recorded in a \textbf{chain-of-custody} log stating who collected it, when, how, where it was stored and to whom it was transferred. A gap in this chain can render otherwise valid evidence inadmissible.
+
+\section{Filesystem artefacts, carving and timelines}\label{sec:12.6}
+Filesystems record far more than file contents. On Windows, the NTFS \textbf{Master File Table (MFT)} stores metadata for every file, including four timestamps—creation, modification, access and MFT-entry change—in two separate attributes, which helps investigators detect \emph{timestomping}, the deliberate falsification of timestamps. Other valuable artefacts include the \textbf{\$UsnJrnl} change journal, \textbf{Prefetch} files that prove a program was executed, \textbf{LNK} shortcut files and \textbf{Jump Lists} that reveal recently opened documents, \textbf{ShellBags} that record folder access, and the Windows event logs. Deleting a file usually removes only its directory entry, so its contents may remain on disk until the space is reused.
+
+\textbf{File carving} recovers such deleted data by searching unallocated space for known file signatures—for instance, the header and footer of a JPEG image—without relying on filesystem metadata. Finally, investigators combine timestamps from all sources into a single \textbf{super-timeline}, using tools such as Plaso or Autopsy. A timeline turns thousands of isolated artefacts into a narrative: the phishing email arrived at 09:12, the attachment was opened at 09:14, PowerShell ran at 09:14:07, a scheduled task was created at 09:15, and data were compressed and sent out at 02:30 the following night.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Entropy] A measure of randomness; high values suggest compressed or encrypted (packed) content.
+  \item[Sandbox] An isolated environment that executes samples and records their behaviour.
+  \item[Passive reconnaissance] Information gathering without direct interaction with the target's systems.
+  \item[Order of volatility] Collecting evidence from the most to the least short-lived source.
+  \item[Chain of custody] A documented record of who handled evidence, when and how.
+  \item[Super-timeline] A unified chronology of events built from many artefact sources.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Static triage—hashes, headers, imports, entropy and strings—is the safe first step and guides deeper analysis.
+  \item Dynamic analysis reveals behaviour, but evasive malware means that a clean sandbox result proves nothing.
+  \item Passive reconnaissance, dorking and DNS enumeration let defenders see their exposure as attackers do.
+  \item OSINT must be lawful, proportionate and OPSEC-aware, and its results must become owned remediation actions.
+  \item Forensics follows the order of volatility and chain of custody, and timelines turn artefacts into a reliable narrative.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item A PE file has a section with entropy 7.9 and very few imports. What do you conclude, and what is your next step?
+  \item Why is a 'no malicious activity' sandbox verdict insufficient to clear a suspicious file?
+  \item Classify the following as passive or active: certificate-transparency search, Nmap scan, Shodan lookup, zone-transfer attempt.
+  \item Why should memory be captured before a disk image during live response?
+\end{enumerate}

@@ -1,0 +1,92 @@
+% ============================================================
+% Chapter 10: Security Testing: SAST, DAST, Vulnerability Assessment and Penetration Testing
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Security Testing: SAST, DAST, Vulnerability Assessment and Penetration Testing}\label{ch:10}
+\chaptermeta{Static analysis · Dynamic analysis · Vulnerability management lifecycle · Penetration testing methodology and ethics · CVSS and professional reporting}{Level: Intermediate–Advanced · Assurance}{Study time: 7–9 hours}
+
+Chapter 9 described how to build software securely; this chapter asks how we can \emph{verify} that it is secure. No single technique finds every weakness. Static analysis reads code without running it, dynamic analysis probes a running application from outside, vulnerability assessment surveys an entire environment for known weaknesses, and penetration testing demonstrates what a skilled adversary could actually achieve. Each answers a different question, at a different cost and stage.
+
+Because several of these activities use genuinely offensive techniques, the chapter gives equal weight to method and to ethics. It explains the legal foundations of authorised testing, the boundaries of post-exploitation activity and the handling of sensitive evidence, and it shows how findings should be scored and reported so that they lead to remediation rather than to an unread document.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Compare SAST, DAST, vulnerability assessment and penetration testing in terms of scope, strengths and limitations.
+  \item Describe the vulnerability management lifecycle and prioritise findings using CVSS and exploitation likelihood.
+  \item Explain penetration-testing models, phases and recognised methodologies.
+  \item State the legal and ethical requirements of authorised testing, including rules of engagement.
+  \item Write a finding that combines evidence, risk rating and actionable remediation.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Static application security testing (SAST)}\label{sec:10.1}
+\textbf{Static application security testing (SAST)} analyses source code, bytecode or binaries \emph{without executing them}. It is a white-box technique: the tool sees the entire code base. Modern SAST tools build a model of the program and perform \textbf{taint analysis}, tracking data from \emph{sources} (such as HTTP parameters) to dangerous \emph{sinks} (such as SQL execution or HTML output). If tainted data reach a sink without passing through a recognised \emph{sanitiser}, the tool reports a potential vulnerability together with the exact line of code.
+
+SAST's great advantage is timing: it can run in the developer's editor and on every commit, long before an application is deployed. Its main weakness is precision. Because it cannot observe runtime behaviour, it produces \textbf{false positives} (reported issues that are not exploitable) and misses flaws that depend on configuration or on business logic. Successful programmes therefore tune rules to their frameworks, triage results, and treat SAST as one layer among several.
+
+\section{Dynamic application security testing (DAST)}\label{sec:10.2}
+\textbf{Dynamic application security testing (DAST)} examines a \emph{running} application from the outside, as an attacker would, without access to the source code. A DAST scanner such as OWASP ZAP first \emph{crawls} the application to discover pages, parameters and API endpoints, then sends crafted inputs and analyses the responses for signs of vulnerability—an SQL error message, a reflected script, a missing security header. Because it observes real behaviour, a DAST finding is usually genuinely exploitable, and it can detect configuration and server problems that SAST cannot see.
+
+DAST also has limits. It can test only what it manages to reach, so pages behind complex authentication or multi-step workflows may be missed, and it cannot point to the responsible line of code. It runs late in the lifecycle, against a deployed test environment. \textbf{Interactive testing (IAST)} combines the two approaches by instrumenting the application while dynamic tests run, linking each observed issue to its location in the code.
+
+\section{The vulnerability management lifecycle}\label{sec:10.3}
+\textbf{Vulnerability assessment} systematically identifies known weaknesses—missing patches, insecure configurations, default credentials—across networks, hosts and applications, usually with automated scanners such as Nessus, OpenVAS or Nmap scripts. It is broad but shallow: it reports what \emph{may} be exploitable without attempting exploitation. Assessment is one stage of a continuous \textbf{vulnerability management lifecycle}: \emph{asset discovery} (you cannot protect what you do not know you have), \emph{scanning}, \emph{analysis and prioritisation}, \emph{remediation}, \emph{verification} that the fix works, and \emph{reporting} on trends.
+
+Prioritisation is where most programmes struggle, because scanners typically report thousands of findings. Severity alone is not enough. A sound approach combines the technical severity (CVSS), the likelihood of exploitation—for instance the \textbf{EPSS} score or inclusion in CISA's \emph{Known Exploited Vulnerabilities} catalogue—and the business importance and exposure of the affected asset. An internet-facing server with an actively exploited vulnerability deserves attention today, even if a 'critical' finding on an isolated test machine waits.
+
+\section{Penetration testing: models, phases, ethics and frameworks}\label{sec:10.4}
+A \textbf{penetration test} is an authorised, simulated attack that attempts to exploit vulnerabilities in order to demonstrate their real impact. Tests are classified by the knowledge given to the tester: \textbf{black-box} (no prior information, like an external attacker), \textbf{grey-box} (some information, such as a user account) and \textbf{white-box} (full documentation and source code, which gives the most thorough coverage in the available time). A typical engagement proceeds through \emph{pre-engagement} and scoping, \emph{reconnaissance}, \emph{scanning and enumeration}, \emph{exploitation}, \emph{post-exploitation}, and \emph{reporting}. Recognised methodologies such as PTES, the OWASP Web Security Testing Guide, OSSTMM and NIST SP 800-115 structure these phases and make results repeatable.
+
+Legality rests entirely on \textbf{authorisation}. Before any testing begins, the client must sign a contract and \textbf{rules of engagement} that define the scope (which systems, addresses and applications), the permitted techniques, the testing windows, emergency contacts and how sensitive data will be handled. Testing a system outside the agreed scope—even one that seems obviously related—is unauthorised access. Professional testers also avoid destructive actions and stop immediately if they encounter evidence of a real, ongoing compromise.
+
+\section{Post-exploitation boundaries and evidence handling}\label{sec:10.5}
+The \textbf{post-exploitation} phase demonstrates the business impact of a compromise: which data could be reached, whether privileges could be escalated, and how far the tester could move through the network. It is also the phase with the greatest ethical risk. The guiding rule is \textbf{minimum necessary action}: prove access, do not exploit it. A tester who reaches a customer database should record a screenshot of the table structure and a row count, not download the records. Any persistence mechanisms, accounts or files created during the test must be documented and removed afterwards.
+
+Evidence collected during a test—screenshots, captured credentials, extracts of sensitive data—is itself sensitive. It must be stored encrypted, shared only with authorised recipients, retained only as long as the contract requires, and then securely destroyed. Where personal data are involved, the processing must also comply with data-protection law such as the GDPR (Chapter 13).
+
+\section{Scoring and reporting: CVSS, proof and remediation}\label{sec:10.6}
+The \textbf{Common Vulnerability Scoring System (CVSS)} expresses the technical severity of a vulnerability as a score from 0 to 10. Its \emph{base metrics} describe how the vulnerability can be exploited (attack vector, attack complexity, privileges required, user interaction) and what its impact is on confidentiality, integrity and availability. The score is accompanied by a \emph{vector string}, such as \texttt{CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H} (score 9.8), which makes the reasoning transparent. CVSS measures severity, not risk; the organisational context must still be considered.
+
+A professional report serves two audiences. The \textbf{executive summary} explains, in non-technical language, the overall risk and the most important recommendations. Each \textbf{technical finding} contains a clear title, the affected assets, a description, step-by-step \emph{reproduction} evidence, the severity with its CVSS vector, the business impact, and a specific, actionable \textbf{remediation}—not 'improve security', but 'replace string concatenation in \texttt{search.php} line 42 with a parameterised query and deploy a WAF rule as an interim measure'. A re-test then verifies that the fixes are effective.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Comparison of testing approaches}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Approach} & \textbf{Access} & \textbf{When} & \textbf{Strength} & \textbf{Limitation} \\
+    \midrule
+    SAST & Source code (white box) & During development & Early, points to exact line & False positives, no runtime view \\
+    DAST & Running app (black box) & Test/staging & Confirms real behaviour & Limited coverage, late \\
+    Vulnerability assessment & Network, hosts, apps & Continuous & Broad coverage & No proof of exploitability \\
+    Penetration test & Agreed scope & Periodic / major change & Demonstrates real impact & Time-boxed, costly, point-in-time \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Taint analysis] Tracking untrusted data from sources to dangerous sinks in code.
+  \item[False positive] A reported issue that is not actually exploitable.
+  \item[EPSS] Exploit Prediction Scoring System: the estimated probability that a vulnerability will be exploited.
+  \item[Rules of engagement] The signed document defining scope, methods, timing and contacts for a test.
+  \item[Post-exploitation] Activities after initial access that demonstrate impact, bounded by minimum necessary action.
+  \item[CVSS vector] A string that records each metric used to compute a CVSS score.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item SAST, DAST, vulnerability assessment and penetration testing answer different questions and complement one another.
+  \item Vulnerability management is a continuous lifecycle; prioritisation must combine severity, exploitation likelihood and asset context.
+  \item Penetration tests follow recognised phases and methodologies and are legal only within signed scope and rules of engagement.
+  \item Post-exploitation should prove access with minimum necessary action, and test evidence must be protected like production data.
+  \item Good reports pair transparent CVSS scoring with reproducible evidence and specific remediation.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why might SAST report a vulnerability that DAST cannot confirm, and vice versa?
+  \item Two findings: CVSS 9.1 on an isolated lab server and CVSS 7.5 on an internet-facing server listed in CISA KEV. Which do you fix first, and why?
+  \item During a test you discover that a system just outside your scope is vulnerable. What should you do?
+  \item Rewrite the recommendation 'Fix the XSS issue' so that it becomes an actionable remediation.
+\end{enumerate}

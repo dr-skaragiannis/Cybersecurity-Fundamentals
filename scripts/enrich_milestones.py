@@ -1,0 +1,725 @@
+#!/usr/bin/env python3
+import json
+
+specs = {
+    1: {
+        "id": "ch01-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Define 3 distinct security zones: DMZ (API Gateway), App Tier (Microservices), and Secure DB Tier.",
+                "Map data classification levels (Public, Internal, Confidential, Restricted) to all data stores.",
+                "Enumerate 5 trust boundaries and specify authentication/authorization requirements across each boundary."
+            ],
+            "el": [
+                "Ορισμός 3 διακριτών ζωνών ασφαλείας: DMZ (API Gateway), App Tier (Μικροϋπηρεσίες) και Secure DB Tier.",
+                "Χαρτογράφηση επιπέδων ταξινόμησης (Public, Internal, Confidential, Restricted) σε όλες τις βάσεις δεδομένων.",
+                "Καταγραφή 5 ορίων εμπιστοσύνης και προδιαγραφή απαιτήσεων αυθεντικοποίησης/εξουσιοδότησης σε κάθε όριο."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Specify Envoy proxy ingress configuration enforcing Complete Mediation on every inter-service API call.",
+                "Define Kubernetes NetworkPolicies enforcing Fail-Safe Defaults (default deny-all ingress/egress).",
+                "Construct granular Kubernetes RBAC RoleBindings implementing Least Privilege for service accounts."
+            ],
+            "el": [
+                "Προδιαγραφή παραμετροποίησης Envoy proxy για επιβολή Πλήρους Διαμεσολάβησης σε κάθε κλήση API.",
+                "Ορισμός NetworkPolicies στο Kubernetes για επιβολή Fail-Safe Defaults (default deny).",
+                "Δημιουργία RoleBindings στο Kubernetes για υλοποίηση του Ελάχιστου Προνομίου."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Formalize Constrained Data Items (CDIs), Unconstrained Data Items (UDIs), and Transformation Procedures (TPs).",
+                "Define Separation of Duties (SoD) dual-control rules preventing single-operator payment authorization.",
+                "Construct access control matrix contrasting Bell-LaPadula vs. Biba vs. Clark-Wilson models."
+            ],
+            "el": [
+                "Τυπικός ορισμός CDIs, UDIs και Transformation Procedures (TPs) κατά το μοντέλο Clark-Wilson.",
+                "Ορισμός κανόνων Διαχωρισμού Καθηκόντων (SoD) με έλεγχο δύο ατόμων για έγκριση συναλλαγών.",
+                "Κατασκευή πίνακα ελέγχου πρόσβασης συγκρίνοντας τα μοντέλα Bell-LaPadula, Biba και Clark-Wilson."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Evaluate 10 realistic financial threat scenarios using ISO 27005 quantitative risk scoring (ALE = SLE * ARO).",
+                "Synthesize findings into an executive matrix detailing Inherent Risk, Safeguards, and Residual Risk.",
+                "Develop a prioritized 12-month mitigation roadmap for presentation to the Board of Directors."
+            ],
+            "el": [
+                "Αξιολόγηση 10 σεναρίων απειλών με ποσοτική βαθμολόγηση κατά ISO 27005 (ALE = SLE * ARO).",
+                "Σύνθεση ευρημάτων σε επιτελικό πίνακα με Εγγενή Κίνδυνο, Μέτρα Προστασίας και Υπολειπόμενο Κίνδυνο.",
+                "Ανάπτυξη ιεραρχημένου οδικού χάρτη αντιμετώπισης 12 μηνών για το Διοικητικό Συμβούλιο."
+            ]
+        }
+    },
+    2: {
+        "id": "ch02-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Benchmark AES-256-GCM vs ChaCha20-Poly1305 throughput and memory utilization under high concurrency.",
+                "Implement 96-bit unique IV/Nonce counter generation preventing catastrophic GCM key reuse.",
+                "Define key derivation parameters using PBKDF2 (600k iterations) and Argon2id for password storage."
+            ],
+            "el": [
+                "Μέτρηση επιδόσεων AES-256-GCM έναντι ChaCha20-Poly1305 σε υψηλό φόρτο.",
+                "Υλοποίηση γεννήτριας μοναδικών nonces 96-bit για αποφυγή επαναχρησιμοποίησης κλειδιού στο GCM.",
+                "Καθορισμός παραμέτρων παραγωγής κλειδιών με PBKDF2 και Argon2id."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Design hybrid key exchange protocol leveraging ECDH (X25519) with ephemeral key generation.",
+                "Implement digital signature verification pipeline supporting RSA-PSS (4096-bit) and Ed25519.",
+                "Architect non-repudiation logging mechanism capturing signed transaction digests."
+            ],
+            "el": [
+                "Σχεδιασμός υβριδικού πρωτοκόλλου ανταλλαγής κλειδιών με ECDH (X25519) και εφήμερα κλειδιά.",
+                "Υλοποίηση αγωγού επαλήθευσης ψηφιακών υπογραφών με RSA-PSS (4096-bit) και Ed25519.",
+                "Αρχιτεκτονική καταγραφής μη-αποποίησης με υπογεγραμμένα digests συναλλαγών."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Design 3-tier PKI CA hierarchy: Offline Root CA, Issuing Intermediate CA, and Leaf Services.",
+                "Specify HSM (FIPS 140-3 Level 3) key storage requirements and quorum ceremony rules.",
+                "Define automated Certificate Revocation List (CRL) distribution and OCSP stapling pipeline."
+            ],
+            "el": [
+                "Σχεδιασμός ιεραρχίας PKI 3 επιπέδων: Offline Root CA, Issuing Intermediate CA και Leaf Services.",
+                "Προδιαγραφή αποθήκευσης κλειδιών σε HSM (FIPS 140-3 Level 3) με τελετές quorum.",
+                "Καθορισμός διανομής λιστών CRL και OCSP stapling."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Draft comprehensive Enterprise Cryptographic Key Management Plan compliant with NIST SP 800-57.",
+                "Establish automated 90-day certificate rotation and cryptographic shredding procedures.",
+                "Construct Post-Quantum Cryptography (PQC) migration timeline for ML-KEM and ML-DSA algorithms."
+            ],
+            "el": [
+                "Σύνταξη Πλάνου Διαχείρισης Κρυπτογραφικών Κλειδιών κατά NIST SP 800-57.",
+                "Καθιέρωση διαδικασιών αυτόματης ανανέωσης πιστοποιητικών (90 ημερών) και crypto-shredding.",
+                "Σχεδίαση χρονοδιαγράμματος μετάβασης σε Μετα-Κβαντική Κρυπτογραφία (PQC ML-KEM / ML-DSA)."
+            ]
+        }
+    },
+    3: {
+        "id": "ch03-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Design 802.1Q VLAN segmentation separating Management, Corporate, IoT, and Production DB zones.",
+                "Specify Software-Defined Perimeter (SDP) architecture enforcing dynamic Zero-Trust network access.",
+                "Define IP addressing scheme (RFC 1918) with dedicated transit subnets and strict NAT gateways."
+            ],
+            "el": [
+                "Σχεδιασμός τμηματοποίησης VLAN 802.1Q (Management, Corporate, IoT, Production DB).",
+                "Προδιαγραφή αρχιτεκτονικής Software-Defined Perimeter (SDP) για πρόσβαση Zero-Trust.",
+                "Ορισμός σχήματος διευθύνσεων IP (RFC 1918) με transit subnets και NAT gateways."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Architect dual-firewall DMZ topology deploying heterogeneous firewall engines.",
+                "Define stateful Netfilter/iptables rulesets with default-drop ingress and strict egress egress filtering.",
+                "Integrate inline Suricata IPS with dynamic threat intelligence feeds and TLS inspection bypass policies."
+            ],
+            "el": [
+                "Αρχιτεκτονική DMZ διπλού τείχους προστασίας με ετερογενείς μηχανές firewall.",
+                "Ορισμός κανόνων Netfilter/iptables με default-drop και αυστηρό egress filtering.",
+                "Ενσωμάτωση Suricata IPS inline με ροές threat intelligence."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Specify IPsec IKEv2 site-to-site VPN tunnels with AES-256-GCM and PFS Diffie-Hellman Group 20.",
+                "Configure WireGuard remote-access gateway with Noise protocol encryption and peer public key routing.",
+                "Define split-tunneling policies and mandatory endpoint posture validation checks."
+            ],
+            "el": [
+                "Προδιαγραφή VPN tunnels IPsec IKEv2 με AES-256-GCM και PFS Diffie-Hellman Group 20.",
+                "Παραμετροποίηση WireGuard gateway με κρυπτογράφηση Noise protocol.",
+                "Ορισμός πολιτικών split-tunneling και ελέγχων ασφάλειας τερματικών."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Design network telemetry aggregation pipeline streaming NetFlow/IPFIX and Zeek logs to SIEM.",
+                "Implement automated anomaly alerting for DNS tunneling, beaconing, and unauthorized lateral movement.",
+                "Construct network resilience matrix detailing BGP failover and DDoS mitigation scrubbers."
+            ],
+            "el": [
+                "Σχεδιασμός αγωγού συλλογής τηλεμετρίας δικτύου με ροές NetFlow/IPFIX και Zeek logs.",
+                "Υλοποίηση ειδοποιήσεων ανωμαλιών για DNS tunneling και lateral movement.",
+                "Κατασκευή πίνακα ανθεκτικότητας δικτύου με BGP failover και προστασία DDoS."
+            ]
+        }
+    },
+    4: {
+        "id": "ch04-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Draft automated Bash/Ansible hardening scripts implementing CIS Linux Level 2 Benchmark.",
+                "Disable legacy network protocols, unneeded filesystems (cramfs, squashfs), and insecure kernel modules.",
+                "Configure `/etc/sysctl.conf` kernel parameters: ASLR full randomization, SYN cookies, and IP forwarding disabled."
+            ],
+            "el": [
+                "Σύνταξη σεναρίων Ansible για εφαρμογή του CIS Linux Level 2 Benchmark.",
+                "Απενεργοποίηση παλαιών πρωτοκόλλων, μη αναγκαίων συστημάτων αρχείων και πυρήνα modules.",
+                "Παραμετροποίηση `/etc/sysctl.conf`: πλήρες ASLR, SYN cookies και απαγόρευση IP forwarding."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Design AppArmor profiles and SELinux policies in enforcing mode for public-facing daemons.",
+                "Configure Linux PAM stack (`/etc/pam.d/common-auth`) with `pam_faillock` and `pam_pwquality`.",
+                "Deploy comprehensive Linux `auditd` rules tracking `/etc/passwd`, `/etc/shadow`, and system call executions."
+            ],
+            "el": [
+                "Σχεδιασμός προφίλ AppArmor και πολιτικών SELinux σε κατάσταση enforcing.",
+                "Παραμετροποίηση στοίβας PAM με `pam_faillock` και `pam_pwquality`.",
+                "Ανάπτυξη κανόνων `auditd` για παρακολούθηση κρίσιμων αρχείων και syscalls."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Design immutable Golden Image pipeline using HashiCorp Packer and OpenSCAP compliance scanning.",
+                "Automate vulnerability gating in CI/CD rejecting base images containing CVSS >= 7.0 flaws.",
+                "Specify cryptographic signing of base OS disk images using Cosign and TPM 2.0 measurement."
+            ],
+            "el": [
+                "Σχεδιασμός αγωγού Immutable Golden Images με Packer και OpenSCAP.",
+                "Αυτοματοποιημένος έλεγχος ευπαθειών CI/CD με απόρριψη εικόνων με CVSS >= 7.0.",
+                "Ψηφιακή υπογραφή εικόνων δίσκου με Cosign και TPM 2.0."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Architect enterprise EDR agent rollout across 5,000 hybrid endpoints with tamper-proof policies.",
+                "Define automated response playbooks: network host isolation, live memory artifact capture, and forensic dump.",
+                "Establish endpoint health telemetry dashboard tracking patching status and credential dumping attempts."
+            ],
+            "el": [
+                "Αρχιτεκτονική ανάπτυξης EDR agents σε 5.000 τερματικά με πολιτικές προστασίας από αλλοίωση.",
+                "Ορισμός playbooks αυτόματης απόκρισης: απομόνωση host, εξαγωγή μνήμης και triage.",
+                "Δημιουργία dashboard παρακολούθησης υγείας τερματικών και προσπαθειών υποκλοπής κωδικών."
+            ]
+        }
+    },
+    5: {
+        "id": "ch05-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Design centralized identity directory schema supporting SCIM 2.0 automated provisioning and de-provisioning.",
+                "Construct Role-Based and Attribute-Based Access Control (RBAC/ABAC) policy matrices for 50 organizational roles.",
+                "Define automated joiner-mover-leaver (JML) identity lifecycle workflows."
+            ],
+            "el": [
+                "Σχεδιασμός καταλόγου ταυτοτήτων με SCIM 2.0 για αυτοματοποιημένο provisioning.",
+                "Κατασκευή πινάκων RBAC/ABAC για 50 εταιρικούς ρόλους.",
+                "Καθορισμός ροών διαχείρισης κύκλου ζωής εργαζομένων (JML)."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Architect SAML 2.0 and OpenID Connect (OIDC) federation with modern SaaS and internal portals.",
+                "Enforce mandatory hardware-bound FIDO2 / WebAuthn Multi-Factor Authentication for all corporate accounts.",
+                "Implement conditional access policies restricting logins based on device health, IP reputation, and geolocation."
+            ],
+            "el": [
+                "Αρχιτεκτονική ομοσπονδίας SAML 2.0 και OIDC με SaaS και εσωτερικές εφαρμογές.",
+                "Επιβολή ελέγχου ταυτότητας δύο παραγόντων με FIDO2 / WebAuthn.",
+                "Υλοποίηση πολιτικών conditional access βάσει συσκευής, IP και τοποθεσίας."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Architect enterprise Privileged Access Management (PAM) vault for domain admin and root credentials.",
+                "Implement Just-In-Time (JIT) ephemeral credential checkout with dual-authorization approval workflows.",
+                "Enforce complete session keystroke recording and automated privileged credential rotation every 24 hours."
+            ],
+            "el": [
+                "Αρχιτεκτονική PAM vault για διαχείριση λογαριασμών root και domain admin.",
+                "Υλοποίηση Just-In-Time (JIT) προσωρινών διαπιστευτηρίων με διπλή έγκριση.",
+                "Καταγραφή συνεδριών και αυτόματη εναλλαγή προνομιακών κωδικών κάθε 24 ώρες."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Design Continuous Adaptive Risk and Trust Assessment (CARTA) engine monitoring live user session risk.",
+                "Define automated step-up authentication triggers and session termination on anomaly detection.",
+                "Construct identity governance audit report demonstrating compliance with SOX 404 and ISO 27001 Annex A.9."
+            ],
+            "el": [
+                "Σχεδιασμός μηχανής CARTA για συνεχή παρακολούθηση κινδύνου συνεδρίας χρήστη.",
+                "Ορισμός κανόνων step-up authentication και άμεσου τερματισμού συνεδρίας σε ανωμαλίες.",
+                "Σύνταξη έκθεσης συμμόρφωσης ελέγχου ταυτοτήτων κατά SOX 404 και ISO 27001."
+            ]
+        }
+    },
+    6: {
+        "id": "ch06-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Architect continuous asset discovery engine ingesting network active scans, cloud APIs, and CMDB records.",
+                "Classify external attack surface assets and discover rogue shadow IT infrastructure.",
+                "Establish asset inventory database with real-time tagging and criticality scoring."
+            ],
+            "el": [
+                "Σχεδιασμός μηχανής συνεχούς καταγραφής περιουσιακών στοιχείων μέσω σαρώσεων, cloud APIs και CMDB.",
+                "Κατηγοριοποίηση εξωτερικής επιφάνειας επίθεσης και εντοπισμός Shadow IT.",
+                "Δημιουργία βάσης δεδομένων ενεργητικού με βαθμολόγηση κρισιμότητας."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Design vulnerability prioritization algorithm combining CVSS 4.0, EPSS probability, and CISA KEV data.",
+                "Define risk formula: `Priority_Score = CVSS_Base * (1 + 2*EPSS) * (1.5 if in_CISA_KEV else 1.0) * Asset_Criticality`.",
+                "Construct automated triage pipeline assigning SLAs (Critical: 48h, High: 7d, Medium: 30d)."
+            ],
+            "el": [
+                "Σχεδιασμός αλγορίθμου ιεράρχησης ευπαθειών με συνδυασμό CVSS 4.0, EPSS και CISA KEV.",
+                "Ορισμός μαθηματικού τύπου επικινδυνότητας και αυτόματη ανάθεση SLAs (Critical: 48h, High: 7d).",
+                "Κατασκευή αγωγού αυτόματης διαλογής ευπαθειών."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Architect automated patching orchestration across Linux (apt/dnf) and Windows Server (WSUS/Intune).",
+                "Design canary deployment staging (Dev -> Staging -> 10% Prod -> 100% Prod) with automated rollback triggers.",
+                "Establish compensating virtual patching rules in WAF/IPS for zero-day vulnerabilities."
+            ],
+            "el": [
+                "Αρχιτεκτονική αυτοματοποιημένης εγκατάστασης patches σε Linux και Windows Server.",
+                "Σχεδιασμός σταδιακής διάθεσης (canary staging) με αυτόματο rollback.",
+                "Καθορισμός κανόνων virtual patching σε WAF/IPS για ευπάθειες zero-day."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Construct interactive MITRE ATT&CK coverage heatmap mapping discovered CVEs to threat actor TTPs.",
+                "Design executive CTEM governance dashboard displaying vulnerability dwell time and SLA compliance.",
+                "Draft annual threat exposure and remediation strategy for the Executive Committee."
+            ],
+            "el": [
+                "Κατασκευή διαδραστικού χάρτη κάλυψης MITRE ATT&CK συνδέοντας CVEs με τεχνικές επιτιθέμενων.",
+                "Σχεδιασμός executive CTEM dashboard με χρόνο παραμονής ευπαθειών και συμμόρφωση SLA.",
+                "Σύνταξη ετήσιας στρατηγικής διαχείρισης έκθεσης σε απειλές."
+            ]
+        }
+    },
+    7: {
+        "id": "ch07-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Architect high-throughput log ingestion pipeline handling 20,000 EPS across multi-cloud and on-premises tiers.",
+                "Design Kafka buffer and Logstash/Vector parsing workers mapping logs to Open Cybersecurity Schema Framework (OCSF).",
+                "Specify tiered hot-warm-cold storage with immutable cryptographic write-once-read-many (WORM) archiving."
+            ],
+            "el": [
+                "Αρχιτεκτονική αγωγού συλλογής logs για διαχείριση 20.000 EPS σε hybrid cloud περιβάλλον.",
+                "Σχεδιασμός Kafka buffers και parsers για κανονικοποίηση σε σχήμα OCSF.",
+                "Προδιαγραφή κλιμακωτής αποθήκευσης hot-warm-cold με WORM αρχειοθέτηση."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Develop 25 production-grade Sigma YAML detection rules mapped to MITRE ATT&CK enterprise techniques.",
+                "Implement stateful correlation rules detecting multi-stage attack chains (Pass-the-Hash, Cobalt Strike beaconing).",
+                "Build dynamic suppression and whitelisting engine reducing false-positive alert volume by 80%."
+            ],
+            "el": [
+                "Ανάπτυξη 25 κανόνων ανίχνευσης Sigma YAML αντιστοιχισμένων στο MITRE ATT&CK.",
+                "Υλοποίηση κανόνων συσχέτισης πολλαπλών σταδίων (Pass-the-Hash, C2 beaconing).",
+                "Κατασκευή μηχανής δυναμικής καταστολής ψευδών συναγερμών (μείωση 80%)."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Architect automated Security Orchestration, Automation, and Response (SOAR) playbook engine.",
+                "Implement automated playbooks: Host Isolation via EDR API, Phishing Domain Sinkholing, and User Token Revocation.",
+                "Design human-in-the-loop interactive approval checkpoints via Slack/Teams webhooks for high-impact actions."
+            ],
+            "el": [
+                "Αρχιτεκτονική μηχανής αυτοματοποιημένων playbooks SOAR.",
+                "Υλοποίηση playbooks: απομόνωση host μέσω EDR API, sinkholing κακόβουλων domains και ανάκληση tokens.",
+                "Σχεδιασμός σημείων έγκρισης human-in-the-loop μέσω Slack/Teams."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Construct real-time SOC operations dashboard tracking Mean Time to Detect (MTTD) and Mean Time to Respond (MTTR).",
+                "Establish Tier 1/2/3 analyst shift escalation matrix and alert triage quality assurance runbooks.",
+                "Draft comprehensive SOC Engineering & Threat Hunting Operating Charter (15 pages)."
+            ],
+            "el": [
+                "Κατασκευή real-time dashboard λειτουργίας SOC με μετρικές MTTD (< 15 min) και MTTR (< 60 min).",
+                "Καθορισμός διαδικασιών κλιμάκωσης αναλυτών Tier 1/2/3 και οδηγών triage.",
+                "Σύνταξη πλήρους Εγχειριδίου Λειτουργίας SOC & Threat Hunting (15 σελίδες)."
+            ]
+        }
+    },
+    8: {
+        "id": "ch08-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Integrate STRIDE threat modeling into the software architecture phase with automated data flow diagrams.",
+                "Define security non-functional requirements (NFRs) mapped to OWASP ASVS 4.0 Level 3.",
+                "Establish secure coding standards and mandatory developer security training curriculum."
+            ],
+            "el": [
+                "Ενσωμάτωση μοντελοποίησης απειλών STRIDE στη φάση σχεδιασμού λογισμικού.",
+                "Ορισμός μη-λειτουργικών απαιτήσεων ασφάλειας κατά OWASP ASVS 4.0 Level 3.",
+                "Καθιέρωση προτύπων ασφαλούς προγραμματισμού και εκπαίδευσης προγραμματιστών."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Architect automated CI/CD DevSecOps pipeline with blocking security gates in GitHub Actions / GitLab CI.",
+                "Integrate SAST (Semgrep), SCA (Trivy/Dependency-Check), and Secret Scanning (TruffleHog) into every pull request.",
+                "Enforce zero critical/high vulnerability policy before code merge approval."
+            ],
+            "el": [
+                "Αρχιτεκτονική αυτοματοποιημένου CI/CD DevSecOps αγωγού με blocking gates στο GitHub Actions.",
+                "Ενσωμάτωση SAST (Semgrep), SCA (Trivy) και Secret Scanning (TruffleHog) σε κάθε PR.",
+                "Επιβολή πολιτικής μηδενικών κρίσιμων ευπαθειών πριν τη συγχώνευση κώδικα."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Implement Software Supply Chain Security conforming to SLSA Level 3 framework.",
+                "Generate CycloneDX / SPDX Software Bill of Materials (SBOM) for all containerized applications.",
+                "Implement cryptographic container image signing and admission verification using Sigstore Cosign and Kyverno."
+            ],
+            "el": [
+                "Υλοποίηση ασφάλειας εφοδιαστικής αλυσίδας λογισμικού κατά το πλαίσιο SLSA Level 3.",
+                "Παραγωγή Software Bill of Materials (SBOM) σε μορφή CycloneDX/SPDX.",
+                "Ψηφιακή υπογραφή εικόνων containers με Sigstore Cosign και επαλήθευση εισόδου με Kyverno."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Deploy Dynamic Application Security Testing (DAST) and continuous API fuzzing harness in staging environment.",
+                "Establish Responsible Vulnerability Disclosure Program (VDP) and bug bounty triage workflow.",
+                "Draft comprehensive Enterprise Application Security Assurance Governance Policy."
+            ],
+            "el": [
+                "Ανάπτυξη DAST και συνεχούς API fuzz testing στο περιβάλλον δοκιμών.",
+                "Καθιέρωση προγράμματος υπεύθυνης αποκάλυψης ευπαθειών (VDP) και bug bounty.",
+                "Σύνταξη Εταιρικής Πολιτικής Διασφάλισης Ασφάλειας Εφαρμογών."
+            ]
+        }
+    },
+    9: {
+        "id": "ch09-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Architect multi-cloud landing zone (AWS/Azure) with segregated organizational units (Security, Audit, Workloads).",
+                "Implement Service Control Policies (SCPs) and Azure Management Group governance enforcing least privilege.",
+                "Configure centralized CloudTrail/Activity Log aggregation to immutable storage buckets."
+            ],
+            "el": [
+                "Αρχιτεκτονική multi-cloud landing zone με διαχωρισμένες οργανωτικές μονάδες.",
+                "Εφαρμογή Service Control Policies (SCPs) για επιβολή ελάχιστου προνομίου.",
+                "Συγκεντρωτική συλλογή CloudTrail logs σε κλειδωμένα S3 buckets."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Deploy Cloud Security Posture Management (CSPM) engine auditing infrastructure against CIS Cloud Benchmarks.",
+                "Implement automated remediation for unencrypted S3 buckets, open security groups (0.0.0.0/0), and stale IAM keys.",
+                "Configure Cloud Workload Protection (CWPP) runtime monitoring on virtual machines and serverless functions."
+            ],
+            "el": [
+                "Ανάπτυξη μηχανής CSPM για έλεγχο υποδομών βάσει CIS Cloud Benchmarks.",
+                "Αυτοματοποιημένη αποκατάσταση για μη κρυπτογραφημένα buckets και ανοικτά security groups.",
+                "Ρύθμιση προστασίας CWPP για virtual machines και serverless συναρτήσεις."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Design secure Infrastructure-as-Code (Terraform) templates enforcing encryption and private networking by default.",
+                "Implement Policy-as-Code checks in CI/CD using Open Policy Agent (OPA/Rego) and Checkov.",
+                "Block deployment of non-compliant infrastructure with automated pull request comments."
+            ],
+            "el": [
+                "Σχεδιασμός ασφαλών προτύπων Terraform με προεπιλεγμένη κρυπτογράφηση και ιδιωτικά δίκτυα.",
+                "Εφαρμογή ελέγχων Policy-as-Code με Open Policy Agent (OPA/Rego) και Checkov.",
+                "Αποκλεισμός ανάπτυξης μη συμμορφούμενων υποδομών μέσω CI/CD."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Architect production Kubernetes hardening using Cilium eBPF network policies and mutual TLS.",
+                "Enforce Kubernetes Pod Security Standards (Restricted profile) and gVisor container sandboxing.",
+                "Establish Cloud Threat Modeling and Disaster Recovery cross-region migration playbook."
+            ],
+            "el": [
+                "Αρχιτεκτονική ενίσχυσης Kubernetes με Cilium eBPF network policies και mTLS.",
+                "Επιβολή Pod Security Standards (Restricted profile) και sandboxing με gVisor.",
+                "Σύνταξη πλάνου αντιμετώπισης απειλών cloud και cross-region disaster recovery."
+            ]
+        }
+    },
+    10: {
+        "id": "ch10-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Design quantitative Human Risk Scoring index measuring vulnerability based on simulation clicks and training history.",
+                "Segment enterprise workforce into distinct risk tiers (High-Risk Finance, Privileged Admins, General Staff).",
+                "Establish baseline measurement of organization-wide Phish-Prone Percentage (PPP)."
+            ],
+            "el": [
+                "Σχεδιασμός ποσοτικού δείκτη ανθρώπινου κινδύνου βάσει συμπεριφοράς και εκπαίδευσης.",
+                "Κατηγοριοποίηση προσωπικού σε βαθμίδες επικινδυνότητας (Οικονομικά, Διαχειριστές, Υπάλληλοι).",
+                "Μέτρηση αρχικού ποσοστού ευαλωτότητας σε phishing (PPP) της επιχείρησης."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Develop role-specific adaptive micro-learning modules (5-minute interactive simulations every month).",
+                "Create targeted spear-phishing and Business Email Compromise (BEC) defense training for C-suite and Treasury.",
+                "Implement positive reinforcement reward program recognizing employees who report simulated phish."
+            ],
+            "el": [
+                "Ανάπτυξη προσαρμοσμένων μηνιαίων ενοτήτων micro-learning διάρκειας 5 λεπτών.",
+                "Εξειδικευμένη εκπαίδευση αντιμετώπισης BEC για τη διοίκηση και το λογιστήριο.",
+                "Πρόγραμμα επιβράβευσης εργαζομένων που αναφέρουν ύποπτα μηνύματα."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Architect enterprise email security gateway enforcing DMARC policy `p=reject`, SPF validation, and DKIM signing.",
+                "Deploy Brand Indicators for Message Identification (BIMI) and MTA-STS for secure email transport.",
+                "Implement AI-powered natural language processing (NLP) mailbox filter detecting impersonation and zero-link BEC."
+            ],
+            "el": [
+                "Αρχιτεκτονική email gateway με αυστηρό DMARC (`p=reject`), SPF και DKIM.",
+                "Ανάπτυξη BIMI και MTA-STS για ασφαλή μεταφορά ηλεκτρονικού ταχυδρομείου.",
+                "Ενσωμάτωση φίλτρου AI/NLP στα γραμματοκιβώτια για εντοπισμό επιθέσεων πλαστοπροσωπίας BEC."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Design one-click Phish Alarm email client add-in with automated SOC triage integration.",
+                "Establish rapid credential revocation and mailbox search-and-purge playbook for active phishing attacks.",
+                "Draft comprehensive Social Engineering Defense & Human Cyber Risk Program Charter."
+            ],
+            "el": [
+                "Σχεδιασμός κουμπιού αναφοράς Phish Alarm στο Outlook με αυτόματη σύνδεση στο SOC.",
+                "Ορισμός διαδικασίας άμεσης ανάκλησης κωδικών και μαζικής διαγραφής κακόβουλων emails.",
+                "Σύνταξη επίσημου Καταστατικού Προγράμματος Αντιμετώπισης Κοινωνικής Μηχανικής."
+            ]
+        }
+    },
+    11: {
+        "id": "ch11-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Conduct comprehensive threat modeling on enterprise LLM applications using MITRE ATLAS and OWASP Top 10 for LLMs.",
+                "Decompose risks: Direct Prompt Injection, Data Poisoning, Insecure Output Handling, and Model Inversion.",
+                "Construct threat boundary architecture separating untrusted user prompts from internal agent tool APIs."
+            ],
+            "el": [
+                "Μοντελοποίηση απειλών σε εφαρμογές LLM βάσει MITRE ATLAS και OWASP Top 10 for LLMs.",
+                "Ανάλυση κινδύνων: Direct Prompt Injection, Data Poisoning, Insecure Output Handling.",
+                "Αρχιτεκτονική ορίων εμπιστοσύνης μεταξύ εισόδου χρήστη και εσωτερικών εργαλείων agent."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Architect dual-tier LLM Guardrail gateway intercepting incoming user prompts and outgoing model responses.",
+                "Implement semantic classification filtering jailbreak attempts, toxic content, and PII/credential exfiltration.",
+                "Deploy dynamic Canary Token verification detecting system prompt leakage."
+            ],
+            "el": [
+                "Αρχιτεκτονική διπλού LLM Guardrail gateway για έλεγχο prompts και απαντήσεων.",
+                "Σημασιολογικό φιλτράρισμα jailbreaks, τοξικού περιεχομένου και διαρροής PII/κωδικών.",
+                "Ενσωμάτωση canary tokens για εντοπισμό υποκλοπής system prompt."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Design secure Retrieval-Augmented Generation (RAG) vector database architecture with multi-tenant isolation.",
+                "Implement cryptographic vector embedding verification and chunk-level Document Access Control Lists (ACLs).",
+                "Enforce strict input sanitization on retrieved context chunks before synthesis into LLM prompts."
+            ],
+            "el": [
+                "Σχεδιασμός ασφαλούς RAG vector database με απομόνωση multi-tenant δεδομένων.",
+                "Εφαρμογή ACLs πρόσβασης σε επίπεδο κειμενικών chunks και επαλήθευση embeddings.",
+                "Καθαρισμός ανακτηθέντων δεδομένων πριν τη σύνθεση στο prompt του LLM."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Architect automated CI/CD red-teaming harness executing adversarial prompt evaluation across model updates.",
+                "Establish compliance framework aligning AI systems with the European Union Artificial Intelligence Act (EU AI Act).",
+                "Draft Enterprise AI Governance, Ethics & Model Risk Management Policy."
+            ],
+            "el": [
+                "Αυτοματοποιημένο red-teaming στο CI/CD για έλεγχο ανθεκτικότητας σε adversarial prompts.",
+                "Πλαίσιο συμμόρφωσης με την Ευρωπαϊκή Πράξη για την Τεχνητή Νοημοσύνη (EU AI Act).",
+                "Σύνταξη Εταιρικής Πολιτικής Διακυβέρνησης AI & Διαχείρισης Μοντέλων."
+            ]
+        }
+    },
+    12: {
+        "id": "ch12-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Architect dedicated DFIR analysis lab with isolated virtual networks and write-blocking hardware forensic stations.",
+                "Establish cryptographically verified evidence vault with SHA-256 integrity hashing and RFC 3161 timestamping.",
+                "Draft formal legal Chain of Custody procedures adhering to ISO/IEC 27037 standards."
+            ],
+            "el": [
+                "Σχεδιασμός απομονωμένου εργαστηρίου DFIR με hardware write-blockers.",
+                "Δημιουργία ασφαλούς αποθήκης ψηφιακών πειστηρίων με SHA-256 hashes και RFC 3161 timestamps.",
+                "Σύνταξη τυπικών διαδικασιών Chain of Custody κατά το πρότυπο ISO/IEC 27037."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Develop automated live triage acquisition scripts capturing volatile RAM, active network connections, and process memory.",
+                "Automate disk forensic imaging over SSH / iSCSI preserving forensic metadata (MACB timestamps).",
+                "Deploy centralized artifact parser collecting Windows Event Logs, MFT, Prefetch, and Shimcache."
+            ],
+            "el": [
+                "Ανάπτυξη σεναρίων άμεσης συλλογής πτητικών δεδομένων RAM, συνδέσεων δικτύου και διεργασιών.",
+                "Αυτοματοποιημένη εξαγωγή αντιγράφων δίσκων μέσω SSH με διατήρηση χρονικών σημάτων MACB.",
+                "Συλλογή και ανάλυση Windows Event Logs, MFT, Prefetch και Shimcache."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Implement super-timeline reconstruction using Plaso / log2timeline correlating multi-source enterprise artifacts.",
+                "Map attacker lateral movement, persistence mechanisms, and credential access to MITRE ATT&CK techniques.",
+                "Perform reverse engineering on captured malware binaries extracting C2 IOCs and decryption algorithms."
+            ],
+            "el": [
+                "Ανακατασκευή super-timeline με Plaso/log2timeline για συσχέτιση συμβάντων.",
+                "Χαρτογράφηση πλευρικής μετακίνησης (lateral movement) και μηχανισμών persistence στο MITRE ATT&CK.",
+                "Ανάλυση κακόβουλου λογισμικού (reverse engineering) για εξαγωγή δεικτών IOCs και κλειδιών C2."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Produce comprehensive Root Cause Analysis (RCA) incident report detailing initial compromise to final containment.",
+                "Formulate IOC threat intelligence packages formatted in STIX 2.1 / TAXII for external sharing.",
+                "Establish regulatory breach notification playbook compliant with GDPR Article 33 (72-hour mandatory notification)."
+            ],
+            "el": [
+                "Σύνταξη τελικής έκθεσης Root Cause Analysis (RCA) από την αρχική παραβίαση έως τον περιορισμό.",
+                "Παραγωγή πακέτων threat intelligence σε μορφή STIX 2.1 / TAXII.",
+                "Ορισμός διαδικασίας κοινοποίησης παραβίασης κατά το Άρθρο 33 του GDPR (εντός 72 ωρών)."
+            ]
+        }
+    },
+    13: {
+        "id": "ch13-arch",
+        "category": {
+            "en": "Enterprise Architecture & Assessment Blueprint",
+            "el": "Αρχιτεκτονική Επιχείρησης & Στρατηγικό Πλάνο"
+        },
+        "m1": {
+            "en": [
+                "Conduct enterprise Business Impact Analysis (BIA) evaluating revenue loss per hour for all core business services.",
+                "Define formal Maximum Tolerable Downtime (MTD), Recovery Time Objectives (RTO < 15m), and Recovery Point Objectives (RPO < 5m).",
+                "Identify inter-service application dependencies and single points of failure (SPOF)."
+            ],
+            "el": [
+                "Διενέργεια Business Impact Analysis (BIA) με εκτίμηση οικονομικής απώλειας ανά ώρα διακοπής.",
+                "Καθορισμός στόχων MTD, RTO (< 15 min) και RPO (< 5 min) για κρίσιμες υπηρεσίες.",
+                "Εντοπισμός εξαρτήσεων εφαρμογών και μοναδικών σημείων αποτυχίας (SPOF)."
+            ]
+        },
+        "m2": {
+            "en": [
+                "Implement quantitative Factor Analysis of Information Risk (FAIR) mathematical model calculating Annualized Loss Expectancy (ALE).",
+                "Model Threat Event Frequency (TEF) and Loss Magnitude (LM) using Modified PERT distributions.",
+                "Calculate Return on Security Investment (ROSI) for multi-million euro cyber defense enhancements."
+            ],
+            "el": [
+                "Εφαρμογή μοντέλου FAIR για ποσοτικό υπολογισμό Ετήσιας Εκτιμώμενης Απώλειας (ALE).",
+                "Μοντελοποίηση συχνότητας απειλών και μεγέθους απωλειών με κατανομές Modified PERT.",
+                "Υπολογισμός απόδοσης επένδυσης ασφάλειας (ROSI) για στρατηγικά μέτρα προστασίας."
+            ]
+        },
+        "m3": {
+            "en": [
+                "Architect multi-region active-active cloud disaster recovery infrastructure with automated data replication.",
+                "Implement DNS traffic steering and health-check failover divert in < 60 seconds upon primary region failure.",
+                "Establish immutable air-gapped backup vault with Write-Once-Read-Many (WORM) retention for ransomware defense."
+            ],
+            "el": [
+                "Αρχιτεκτονική multi-region active-active cloud disaster recovery με αυτόματο replication.",
+                "Υλοποίηση μεταγωγής DNS και health checks σε < 60 δευτερόλεπτα σε αστοχία κύριας περιοχής.",
+                "Δημιουργία απομονωμένου air-gapped αντιγράφου ασφαλείας με WORM retention έναντι ransomware."
+            ]
+        },
+        "m4": {
+            "en": [
+                "Design executive tabletop crisis simulation handbook with realistic scenarios (Ransomware Extortion, Supply Chain Blackout).",
+                "Establish crisis management decision trees, executive communication protocols, and legal counsel coordination.",
+                "Draft comprehensive Business Continuity & Operational Cyber Resilience Plan compliant with ISO 22301 and DORA."
+            ],
+            "el": [
+                "Σχεδιασμός εγχειριδίου ασκήσεων επί χάρτου (tabletop) για τη διοίκηση με ρεαλιστικά σενάρια κρίσεων.",
+                "Καθορισμός δέντρων αποφάσεων διαχείρισης κρίσεων και πρωτοκόλλων επικοινωνίας.",
+                "Σύνταξη Πλάνου Επιχειρησιακής Συνέχειας & Ανθεκτικότητας κατά ISO 22301 και κανονισμό DORA."
+            ]
+        }
+    }
+}
+
+with open("scripts/project_specs.json", "w", encoding="utf-8") as f:
+    json.dump(specs, f, indent=2, ensure_ascii=False)
+
+print("Saved project specs JSON.")

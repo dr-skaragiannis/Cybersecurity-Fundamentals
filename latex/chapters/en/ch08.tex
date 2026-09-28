@@ -1,0 +1,78 @@
+% ============================================================
+% Chapter 8: Identity, Directory Services and Federated Single Sign-On
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Identity, Directory Services and Federated Single Sign-On}\label{ch:8}
+\chaptermeta{IAM · Authentication factors and MFA · FIDO2 · RBAC and ABAC · LDAP and Active Directory · Kerberos · SAML, OAuth 2.0 and OpenID Connect}{Level: Intermediate · Identity}{Study time: 9–11 hours}
+
+As organisations move to cloud services and remote work, the network perimeter loses its meaning and \textbf{identity becomes the new perimeter}. Most modern intrusions do not break encryption or exploit exotic vulnerabilities; they log in with stolen or abused credentials. Understanding how identities are created, verified, authorised and federated is therefore central to contemporary defence.
+
+This chapter builds on the cryptographic foundations of Chapter 7. It begins with the architecture of identity and access management and the factors used for authentication, including phishing-resistant FIDO2. It then compares access-control models, explains directory services and the Kerberos protocol that underpins Windows domains—together with the attacks against it—and concludes with the federation protocols SAML, OAuth 2.0 and OpenID Connect that enable single sign-on across organisational boundaries.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Distinguish identification, authentication, authorisation and accounting.
+  \item Compare authentication factors and explain why FIDO2 resists phishing.
+  \item Choose between RBAC, ABAC and rule-based access control for a given scenario.
+  \item Explain the Kerberos ticket flow and the principles behind Kerberoasting, pass-the-ticket and golden-ticket attacks.
+  \item Describe the roles of SAML, OAuth 2.0 and OpenID Connect and common federation weaknesses.
+\end{itemize}
+\end{outcomesbox}
+
+\section{IAM architecture: identification, authentication, authorisation and accounting}\label{sec:8.1}
+\textbf{Identity and access management (IAM)} is organised around four distinct steps, often abbreviated as \emph{IAAA}. \textbf{Identification} is the claim of an identity, such as typing a username. \textbf{Authentication} is the verification of that claim, for instance by checking a password or a security key. \textbf{Authorisation} determines what the authenticated subject is allowed to do. \textbf{Accounting} (or auditing) records what the subject actually did, which supports accountability and investigations. Confusing these steps leads to design errors—for example, treating a successfully authenticated user as automatically authorised for every resource.
+
+IAM also covers the \textbf{identity lifecycle}: accounts must be created when people join (\emph{joiner}), adjusted when they change roles (\emph{mover}) and disabled promptly when they leave (\emph{leaver}). Orphaned accounts of former employees and the gradual accumulation of permissions over a career—\emph{privilege creep}—are among the most common findings of security audits. Periodic \textbf{access reviews}, in which managers confirm that each permission is still needed, are the standard countermeasure.
+
+\section{Authentication factors, MFA and phishing-resistant FIDO2}\label{sec:8.2}
+Authentication factors are traditionally grouped into three categories: \textbf{something you know} (a password or PIN), \textbf{something you have} (a phone, smart card or security key) and \textbf{something you are} (a biometric trait such as a fingerprint). \textbf{Multi-factor authentication (MFA)} combines factors from \emph{different} categories, so that stealing one factor is not enough. Not all MFA is equally strong, however. One-time codes sent by SMS can be intercepted through SIM swapping; time-based codes from an authenticator app (TOTP, defined by the OATH standards) and push notifications can still be relayed by a real-time phishing proxy.
+
+\textbf{FIDO2/WebAuthn} changes this picture fundamentally. During registration, the authenticator—a security key or the secure hardware in a phone or laptop—creates a key pair specific to the website. At login, it signs a challenge that includes the website's origin. A fake site with a different domain therefore receives a signature that is useless for the real site, and there is no shared secret to steal. This is why FIDO2 is described as \textbf{phishing-resistant}, and why \emph{passkeys} based on it are replacing passwords in many services.
+
+\section{Access-control models: RBAC, ABAC and rule-based control}\label{sec:8.3}
+Once a subject is authenticated, the system must decide what it may do. In \textbf{role-based access control (RBAC)}, permissions are assigned to roles (for example, \emph{nurse}, \emph{accountant}, \emph{database administrator}) and users receive roles. RBAC is easy to understand and audit, but large organisations can suffer from \emph{role explosion} when every exception requires a new role. \textbf{Attribute-based access control (ABAC)} evaluates policies over attributes of the subject, the resource, the action and the environment—for instance, 'doctors may read records of patients in their own ward, during their shift, from a managed device'. ABAC is more expressive but harder to reason about and test.
+
+\textbf{Rule-based access control} applies global rules that do not depend on the individual user, such as firewall rules or 'no logins between midnight and 5 a.m.'. In practice, organisations combine the models: roles provide a stable baseline, attributes refine decisions in context, and global rules enforce organisation-wide constraints.
+
+\section{Directory services: X.500, LDAP and Active Directory}\label{sec:8.4}
+A \textbf{directory service} is a specialised, hierarchical database that stores information about users, groups, computers and other resources, and that is optimised for frequent reads. Its conceptual model comes from the \textbf{X.500} standards, and the \textbf{Lightweight Directory Access Protocol (LDAP)} is the common way to query and modify it. Every entry is identified by a \emph{distinguished name}, such as \texttt{CN=Maria Papadopoulou,OU=Finance,DC=example,DC=com}.
+
+Microsoft \textbf{Active Directory Domain Services (AD DS)} combines an LDAP directory with Kerberos authentication, DNS and Group Policy. It organises objects into \emph{domains}, \emph{trees} and \emph{forests}, and \emph{domain controllers} replicate the directory among themselves. Because AD controls authentication for almost every system in a Windows enterprise, compromising a domain administrator account usually means compromising the entire organisation. This is why AD security is organised around \textbf{tiered administration}: highly privileged accounts are used only on dedicated, hardened systems and never on ordinary workstations, where their credentials could be stolen.
+
+\section{Kerberos and the attacks against it}\label{sec:8.5}
+\textbf{Kerberos} allows users to authenticate once and then access many services without sending their password over the network. A trusted \textbf{Key Distribution Center (KDC)}—in AD, every domain controller—contains two logical services. At logon, the \textbf{Authentication Service (AS)} verifies the user and issues a \textbf{Ticket-Granting Ticket (TGT)}, encrypted with the key of the special \texttt{krbtgt} account. When the user wants to reach a service, the client presents the TGT to the \textbf{Ticket-Granting Service (TGS)}, which issues a \emph{service ticket} encrypted with the key of the account that runs the service. The service decrypts the ticket and grants access. Tickets have limited lifetimes, and the protocol relies on synchronised clocks.
+
+This design enables several well-known attacks. In \textbf{Kerberoasting}, any domain user requests service tickets for accounts with a \emph{service principal name (SPN)} and cracks them offline; weak service-account passwords fall quickly. In \textbf{pass-the-ticket}, stolen tickets are reused from another machine. A \textbf{golden ticket} is a forged TGT created with the stolen \texttt{krbtgt} key and grants unlimited access to the domain. Countermeasures include long random passwords or group-managed service accounts (gMSA), AES-only encryption, protecting domain controllers as Tier 0 assets, resetting the \texttt{krbtgt} password twice after a compromise, and monitoring for anomalous ticket requests.
+
+\section{Federated identity and single sign-on: SAML, OAuth 2.0 and OpenID Connect}\label{sec:8.6}
+\textbf{Federation} extends single sign-on beyond one organisation: a user authenticates with their own \textbf{identity provider (IdP)}, and many \textbf{service providers} accept that authentication. \textbf{SAML 2.0} exchanges digitally signed XML \emph{assertions} and is widely used for enterprise web applications. \textbf{OAuth 2.0} is, strictly speaking, not an authentication protocol but an \emph{authorisation} framework: it lets a user grant an application limited access to their resources (for example, 'read my calendar') by issuing an \emph{access token}, without sharing a password. \textbf{OpenID Connect (OIDC)} adds an identity layer on top of OAuth 2.0 through a signed \emph{ID token} that states who the user is.
+
+Federation concentrates trust, and therefore risk. If an attacker steals the IdP's token-signing key, they can forge access to every connected service—as happened in the \emph{Golden SAML} technique used during the SolarWinds campaign. Other common weaknesses include applications that fail to validate token signatures, audiences or expiry times; stolen session tokens replayed from another device; and \emph{consent phishing}, in which users are tricked into granting broad OAuth permissions to a malicious application. Defences include protecting signing keys in HSMs, strict token validation, short token lifetimes bound to devices, and administrator approval for high-risk OAuth consents.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Authentication vs. authorisation] Verifying who a subject is versus deciding what it may do.
+  \item[FIDO2 / passkey] Origin-bound public-key authentication that resists phishing and has no shared secret.
+  \item[ABAC] Access control based on attributes of subject, resource, action and environment.
+  \item[TGT] Kerberos ticket-granting ticket, used to obtain service tickets without re-entering credentials.
+  \item[Kerberoasting] Requesting service tickets and cracking service-account passwords offline.
+  \item[OIDC] OpenID Connect: an identity layer on OAuth 2.0 that issues signed ID tokens.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Identity is the modern perimeter; IAM separates identification, authentication, authorisation and accounting and manages the whole identity lifecycle.
+  \item MFA combines factors from different categories; FIDO2 is phishing-resistant because signatures are bound to the website's origin.
+  \item RBAC offers simplicity, ABAC offers context-aware precision, and rule-based controls enforce global constraints.
+  \item Active Directory and Kerberos are high-value targets; tiered administration and strong service-account hygiene are essential.
+  \item Federation protocols enable SSO but concentrate risk in signing keys and token validation.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why is an SMS one-time code weaker than a FIDO2 security key against a real-time phishing proxy?
+  \item Design an access policy for a hospital records system using RBAC, then refine it with ABAC attributes.
+  \item Explain why Kerberoasting is possible for any authenticated domain user, and how gMSAs mitigate it.
+  \item Why is OAuth 2.0 alone not sufficient for user authentication, and what does OIDC add?
+\end{enumerate}

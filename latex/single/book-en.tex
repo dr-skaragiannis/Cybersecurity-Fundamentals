@@ -1,0 +1,1282 @@
+% !TEX program = xelatex
+% Cybersecurity Fundamentals — English edition
+\documentclass[11pt,openany]{book}
+% ============================================================
+%  Preamble — shared by main-en.tex and main-el.tex
+%  Compile with XeLaTeX or LuaLaTeX (required for Greek + Unicode):
+%     latexmk -xelatex main-el.tex
+% ============================================================
+\usepackage{fontspec}
+\usepackage{polyglossia}
+% Fonts with full Greek coverage (TeX Live ships Libertinus; swap freely:
+% "GFS Didot", "Noto Serif", "CMU Serif", "Times New Roman" …)
+\setmainfont{Libertinus Serif}
+\setsansfont{Libertinus Sans}
+\setmonofont[Scale=0.9]{DejaVu Sans Mono}
+\newfontfamily\greekfont[Script=Greek]{Libertinus Serif}
+\newfontfamily\greekfontsf[Script=Greek]{Libertinus Sans}
+\newfontfamily\greekfonttt[Script=Greek,Scale=0.9]{DejaVu Sans Mono}
+
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{booktabs,tabularx,array}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{HTML}{0E7490}
+\definecolor{accent2}{HTML}{B45309}
+\definecolor{ink}{HTML}{0F172A}
+
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\linespread{1.12}
+\setlist{itemsep=0.2em,topsep=0.4em}
+
+\titleformat{\chapter}[display]
+  {\normalfont\sffamily\color{ink}}
+  {\large\color{accent}\chaptertitlename\ \thechapter}
+  {0.4em}{\Huge\bfseries}
+\titlespacing*{\chapter}{0pt}{-10pt}{18pt}
+\titleformat{\section}{\normalfont\sffamily\Large\bfseries\color{ink}}{\color{accent}\thesection}{0.8em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\small\thepage}
+\fancyhead[RE]{\small\sffamily\leftmark}
+\fancyhead[LO]{\small\sffamily\rightmark}
+\renewcommand{\headrulewidth}{0.3pt}
+
+% --- chapter metadata line -------------------------------------------------
+\newcommand{\chaptermeta}[3]{%
+  {\sffamily\small\color{accent}#1\par}\vspace{0.3em}
+  {\sffamily\footnotesize\color{gray}#2 \quad·\quad #3\par}\vspace{1.2em}}
+
+% --- boxes ------------------------------------------------------------------
+\newtcolorbox{outcomesbox}[1]{enhanced,breakable,colback=accent!5,colframe=accent,
+  boxrule=0.6pt,arc=2mm,fonttitle=\sffamily\bfseries,title=#1}
+\newtcolorbox{examplebox}[1]{enhanced,breakable,colback=accent2!6,colframe=accent2,
+  boxrule=0.5pt,arc=2mm,fonttitle=\sffamily\bfseries,title=#1}
+\newtcolorbox{notebox}[1]{enhanced,breakable,colback=gray!6,colframe=gray!60,
+  boxrule=0.5pt,arc=2mm,fonttitle=\sffamily\bfseries,coltitle=ink,title=#1}
+\newtcolorbox{keybox}[1]{enhanced,breakable,colback=accent!8,colframe=accent!70!black,
+  boxrule=0.8pt,arc=2mm,fonttitle=\sffamily\bfseries,title=#1}
+
+\setdefaultlanguage[variant=british]{english}
+\setotherlanguage{greek}
+
+\title{Cybersecurity Fundamentals}
+\author{Dr. S. Karagiannis}
+
+\begin{document}
+\frontmatter
+\begin{titlepage}
+  \centering\sffamily
+  \vspace*{3cm}
+  {\color{accent}\rule{\linewidth}{1.2pt}}\par\vspace{1cm}
+  {\Huge\bfseries Cybersecurity Fundamentals\par}
+  \vspace{0.6cm}
+  {\Large Principles, Architectures and Defensive Operations\par}
+  \vspace{1cm}
+  {\color{accent}\rule{\linewidth}{1.2pt}}\par
+  \vfill
+  {\large Dr. S. Karagiannis\par}
+  \vspace{0.3cm}
+  {\small Revised bilingual edition · 2026\par}
+\end{titlepage}
+\tableofcontents
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+This textbook is written for undergraduate students taking a first university course in cybersecurity, and for practitioners who wish to consolidate their understanding of the field on a sound conceptual basis. It assumes basic familiarity with computers and networks, but no prior study of security.
+
+The book is organised into thirteen chapters grouped in four parts. The sequence is deliberate. It begins with concepts and principles, moves to the operating system as the first concrete security boundary, and then studies the adversary: who attacks, with which tools and through which channels. Only after the reader understands what must be defended does the book introduce the protective mechanisms—cryptography, identity management, secure software engineering and testing. The final part turns to operations: detecting and responding to incidents, analysing malicious code and evidence, and governing security as an organisational function.
+
+Each chapter opens with a short introduction and a set of learning outcomes, develops its subject in numbered sections, and closes with a glossary of key terms, a summary and review questions. Tables condense comparisons that are easier to grasp side by side, while boxed examples connect abstract ideas to realistic situations. Cross-references between chapters are frequent, because security is a connected discipline: a weakness in one layer is usually exploited through another.
+
+The book is published in parallel English and Greek versions. The Greek text is not a literal translation; it is an editorial rendering that follows the conventions of Greek academic writing and uses consistent, established terminology. Where no widely accepted Greek term exists, the English term is given in parentheses on first use.
+
+
+\mainmatter
+\part{Foundations}
+% ============================================================
+% Chapter 1: Foundations of Information Security and the CIA Triad
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Foundations of Information Security and the CIA Triad}\label{ch:1}
+\chaptermeta{Definitions · CIA and its extensions · Design principles · Historical evolution · Security models · Evaluation criteria}{Level: Beginner · Theory-first}{Study time: 6–8 hours}
+
+Every later chapter of this book—whether it deals with operating systems, cryptography, identity or incident response—relies on a small set of shared ideas. This chapter introduces that vocabulary. It explains what we mean when we speak of \emph{security}, which properties of information we are trying to protect, and which design principles experienced engineers apply before they choose any specific product or technology.
+
+The chapter proceeds from definitions to principles and then to formal models. We first distinguish cybersecurity from the broader notions of information assurance and cyber resilience. We then examine the CIA triad and the properties that extend it, the classic design principles of Saltzer and Schroeder, and the historical events that shaped modern defensive thinking. The chapter closes with the formal models (Bell–LaPadula, Biba, Clark–Wilson) and evaluation schemes that allow security claims to be stated precisely and verified independently.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Define cybersecurity, information assurance and cyber resilience, and explain how the three concepts differ in scope.
+  \item Decompose a security requirement into confidentiality, integrity and availability, and recognise when extended properties (authenticity, accountability, non-repudiation, possession, utility) are needed.
+  \item Apply least privilege, defence in depth, fail-safe defaults and security by design when reviewing an architecture.
+  \item Distinguish threat, vulnerability and risk, and describe how controls reduce likelihood or impact.
+  \item Explain the purpose of formal security models and of independent evaluation schemes such as the Common Criteria.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Definitions: cybersecurity, information assurance and cyber resilience}\label{sec:1.1}
+\textbf{Cybersecurity} is the discipline of protecting networked systems, data and services against unauthorised access, modification, disruption and destruction, while preserving their legitimate operation even under adversarial conditions. The phrase \emph{under adversarial conditions} is important: unlike reliability engineering, which deals with random faults, security assumes an intelligent opponent who deliberately searches for the weakest point.
+
+\textbf{Information assurance (IA)} has a broader scope. It combines technical, procedural and managerial measures in order to maintain \emph{justified confidence} in information throughout its lifecycle—from creation and storage to transmission, use and eventual destruction. IA is therefore concerned not only with resisting attacks, but also with authenticity, provenance and the continued usefulness of information.
+
+\textbf{Cyber resilience} extends both ideas. It describes an organisation's capacity to anticipate, withstand, recover from and adapt to adverse cyber events, including those that succeed despite preventive controls. Put simply, cybersecurity asks \emph{how do we prevent and detect compromise?}, information assurance asks \emph{can we trust our information?}, and resilience asks \emph{can we keep operating, and how quickly can we recover?}
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Three related but distinct concepts}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Concept} & \textbf{Guiding question} & \textbf{Typical controls} & \textbf{Consequence if neglected} \\
+    \midrule
+    Cybersecurity & Can an adversary breach or disrupt the system? & Firewalls, IDS/IPS, patching, MFA, encryption & Intrusion, data breach, service outage \\
+    Information assurance & Can we trust the information? & Hashing, digital signatures, provenance, classification & Silent corruption, repudiation, misinformation \\
+    Cyber resilience & Can we operate through failure? & Backups, failover, playbooks, BCP/DR & Prolonged outage, unrecoverable loss \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{The CIA triad and its extensions}\label{sec:1.2}
+The \textbf{CIA triad}—Confidentiality, Integrity and Availability—is the standard way of breaking a security requirement into its core objectives. \textbf{Confidentiality} limits disclosure of information to authorised parties; it is typically enforced through access control and encryption. \textbf{Integrity} protects information against unauthorised or undetected modification, so that data remain accurate and complete; hashes, digital signatures, version control and validated transactions all serve this goal. \textbf{Availability} ensures timely and reliable access for authorised users, and is supported by redundancy, capacity planning, rate limiting and recovery procedures.
+
+Several further properties refine the triad rather than replace it. \textbf{Authenticity} establishes that data or a party is genuinely what it claims to be. \textbf{Accountability} links every action to an identifiable subject by means of trustworthy audit records. \textbf{Non-repudiation} provides evidence that makes it difficult for a party to deny an action later—although its strength ultimately depends on key custody, identity proofing and the legal context.
+
+The three objectives interact and frequently compete. Encryption strengthens confidentiality, but if the keys are lost the data become unavailable. Redundancy improves availability, yet every additional replica is one more system that must be protected and kept consistent. A well-reasoned architecture therefore states which objectives each control supports, identifies any new exposure that the control introduces, and explains how the remaining (residual) risk will be managed.
+
+\begin{examplebox}{Worked example}
+A hospital encrypts its patient database (confidentiality) and replicates it to a second site (availability). If the only copy of the decryption key is stored on the primary server and that server is destroyed by ransomware, the replica is useless: confidentiality has been preserved at the expense of availability. Sound key management is the control that reconciles the two goals.
+\end{examplebox}
+
+\section{Design principles that govern all later chapters}\label{sec:1.3}
+Four principles recur throughout this book as architectural constraints. \textbf{Security by design} requires security properties to be specified, modelled, implemented and verified from the very beginning of the lifecycle, rather than added after deployment, when changes are costly and incomplete. \textbf{Defence in depth} combines independent and diverse preventive, detective and corrective controls, so that the failure of any single layer does not decide the outcome. The \textbf{principle of least privilege} grants each user, process or service only the authority required for a defined task and for a defined period, and removes that authority when it is no longer needed. \textbf{Fail-safe defaults} deny access unless it is explicitly permitted, and require components to fail into a known safe state.
+
+These principles originate in the seminal 1975 paper by Saltzer and Schroeder, which also introduced \emph{economy of mechanism} (keep designs small and simple so that they can be inspected), \emph{complete mediation} (check every access, not only the first), \emph{open design} (security must not depend on the secrecy of the design), \emph{separation of privilege} (require more than one independent condition for sensitive actions), \emph{least common mechanism} (minimise shared components between users) and \emph{psychological acceptability} (security must be usable, or people will circumvent it).
+
+The principles are complementary and must be applied together. Layering without least privilege simply multiplies the number of powerful accounts an attacker can steal; a strict deny-by-default policy without workable procedures encourages users to find unsafe workarounds. A useful professional habit is to name the violated principle in every post-incident review—for example, a wire transfer approved by a single person violates separation of privilege.
+
+\section{Historical evolution: from Creeper to the hyper-connected enterprise}\label{sec:1.4}
+Modern security architecture is best understood as an accumulation of lessons, not as a sequence of threats that replaced one another. Early ARPANET experiments such as \emph{Creeper} and its counterpart \emph{Reaper} (early 1970s) demonstrated both self-propagating code and automated removal. The \emph{Morris Worm} of 1988 showed how a single software flaw could cascade through interconnected hosts, and led directly to the creation of the first Computer Emergency Response Team (CERT).
+
+The commercial Internet and the World Wide Web then dramatically widened the attack surface: remotely reachable services, SQL injection, cross-site scripting, botnets and organised cybercrime became everyday concerns. In the following decades, cloud computing, mobile platforms, ransomware-as-a-service, identity-centric attacks, software supply-chain compromises and the convergence of IT with operational technology (OT) introduced new administrative domains and new dependencies.
+
+Each era rested on a trust assumption that attackers eventually disproved. Today's enterprise is hybrid, highly interconnected and dependent on external identity, software and infrastructure providers. The practical conclusion is that network location alone can no longer establish trust; identity, device health and authorisation must be verified continuously—the core idea of Zero Trust, which Chapter 13 examines in detail.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Trust assumptions and the failures that disproved them}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Era} & \textbf{Trust assumption} & \textbf{Representative failure} & \textbf{Resulting control innovation} \\
+    \midrule
+    1970s–80s & Trusted hosts and trusted users & Creeper, Morris Worm & Access control, CERTs \\
+    1990s–2000s & Trusted inside, hostile outside & Code Red, SQL Slammer & Firewalls, patch management, antivirus \\
+    2010s & Trusted vendors, VPN perimeter & Target breach, WannaCry & Segmentation, EDR, MFA \\
+    2020s & Never trust, always verify & SolarWinds, OT ransomware & Zero Trust, SBOM, XDR \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{Threat, vulnerability and risk: the working vocabulary}\label{sec:1.5}
+Three terms are often used interchangeably in everyday speech, but they have distinct technical meanings. A \textbf{threat} is any circumstance, event or actor capable of causing harm—a criminal group, a disgruntled employee, a flood. A \textbf{vulnerability} is a weakness that a threat can exploit or trigger—an unpatched service, a weak password, a missing backup. \textbf{Risk} is the potential for adverse impact under uncertainty; it only exists when a relevant threat meets an exploitable vulnerability in an asset that matters.
+
+The familiar expression \emph{risk ≈ likelihood × impact} is a useful prioritisation model, not a physical law. Organisations must define their own scales, state their assumptions and acknowledge uncertainty. A \textbf{control} is any measure that modifies likelihood, impact or both: multi-factor authentication lowers the likelihood of account takeover, while immutable backups lower the impact of ransomware.
+
+After controls are applied, \textbf{residual risk} remains and must be treated explicitly. There are four options: \emph{mitigate} it further, \emph{accept} it (by a manager who has the authority to do so), \emph{transfer} it where meaningful (for example, through insurance or contracts), or \emph{avoid} it by abandoning the risky activity. Mature programmes evaluate their control portfolio by coverage, independence and actual operating effectiveness—not by counting the number of products deployed.
+
+\section{The Parkerian Hexad and the McCumber Cube}\label{sec:1.6}
+The CIA triad is necessary but not always sufficient. Donn Parker proposed the \textbf{Parkerian Hexad}, which adds \emph{authenticity}, \emph{possession (control)} and \emph{utility} to the three classic properties. The additions capture situations that the triad describes poorly. When an encrypted laptop is stolen, confidentiality may remain intact, yet possession has clearly been lost. When encrypted data survive but the keys are irrecoverably lost, the data are still confidential, but they have lost all utility.
+
+The \textbf{McCumber Cube} offers a complementary, three-dimensional view. It examines security across the three \emph{states} of information (storage, processing and transmission), the three \emph{safeguard classes} (technology, policy and practice, and people) and the security goals themselves. Used together, the two models expose incomplete claims such as ``the data are encrypted, therefore they are secure''. A reviewer is prompted to ask: which properties are protected, in which state, and by which combination of technology, procedure and human behaviour?
+
+\section{Formal security models: Bell–LaPadula, Biba and Clark–Wilson}\label{sec:1.7}
+Principles tell us \emph{what} to aim for; formal models state \emph{precisely} which system behaviours are permitted, so that a design can be analysed and, ideally, proven correct. The \textbf{Bell–LaPadula (BLP)} model, developed for military systems in the 1970s, protects confidentiality through two rules: \emph{no read up} (a subject may not read objects at a higher classification) and \emph{no write down} (a subject may not write information to a lower classification, which would leak secrets).
+
+The \textbf{Biba} model is the integrity counterpart of BLP and inverts its rules: \emph{no read down} (a trusted process should not consume less trustworthy data) and \emph{no write up} (an untrusted subject may not modify more trustworthy objects). Commercial environments, however, care less about classification levels and more about correct transactions. The \textbf{Clark–Wilson} model therefore enforces integrity through \emph{well-formed transactions}, which may only be executed by authorised users via certified programs, combined with \emph{separation of duties} and complete audit trails.
+
+\begin{notebox}{Why this matters in practice}
+Mandatory integrity levels in Windows (Chapter 2) are a direct descendant of Biba, and the maker–checker approval of financial transfers (Chapter 5) is a textbook Clark–Wilson control.
+\end{notebox}
+
+\section{Evaluation criteria: from TCSEC to the Common Criteria}\label{sec:1.8}
+How can a customer know whether a product actually delivers the security its vendor claims? Evaluation schemes answer this question through independent, repeatable assessment. The U.S. \textbf{Trusted Computer System Evaluation Criteria (TCSEC)}, known as the \emph{Orange Book} (1983), graded operating systems in divisions from D (minimal protection) to A1 (formally verified design). Europe followed with \textbf{ITSEC}, which separated functionality from assurance.
+
+Both were superseded by the international \textbf{Common Criteria (ISO/IEC 15408)}. Under the Common Criteria, a \emph{Protection Profile} describes the security requirements for a class of products (for example, firewalls), and a vendor's \emph{Security Target} states how a specific product meets them. Accredited laboratories then evaluate the product to an \textbf{Evaluation Assurance Level (EAL1–EAL7)}. It is essential to understand what an EAL means: it measures the \emph{rigour} of the evaluation, not the \emph{strength} of the product. An EAL4 product has been examined more thoroughly than an EAL2 product, but only against the requirements its Security Target declared.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[CIA triad] Confidentiality, integrity and availability: the three core objectives of information security.
+  \item[Non-repudiation] Evidence that prevents a party from credibly denying an action it performed.
+  \item[Least privilege] Granting only the minimum authority required for a task, for the minimum time.
+  \item[Defence in depth] Layering independent, diverse controls so that no single failure is decisive.
+  \item[Residual risk] The risk that remains after controls have been applied and must be explicitly treated.
+  \item[EAL] Evaluation Assurance Level (Common Criteria): the rigour of an independent product evaluation.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Cybersecurity, information assurance and cyber resilience answer different questions: preventing compromise, trusting information and continuing to operate through failure.
+  \item The CIA triad remains the foundation, but authenticity, accountability, non-repudiation, possession and utility are needed to describe many real situations.
+  \item Security controls are chosen by principle—least privilege, defence in depth, fail-safe defaults, security by design—before they are chosen by product.
+  \item Risk emerges when a threat meets a vulnerability in a valuable asset; residual risk must always be explicitly mitigated, accepted, transferred or avoided.
+  \item Formal models and evaluation schemes make security claims precise and independently verifiable.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Explain, with an example of your own, why cyber resilience remains necessary even in an organisation with excellent preventive controls.
+  \item Describe a scenario in which improving availability weakens confidentiality. How would you reconcile the two objectives?
+  \item Which Saltzer–Schroeder principle is violated when all administrators share one domain-administrator password? Justify your answer.
+  \item Why does a Common Criteria EAL rating not, on its own, tell you whether a product is suitable for your environment?
+\end{enumerate}
+
+% ============================================================
+% Chapter 2: Operating System Security: POSIX and Windows Architecture
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Operating System Security: POSIX and Windows Architecture}\label{ch:2}
+\chaptermeta{Discretionary access control · Special permission bits · ACLs and capabilities · Mandatory controls · Windows tokens, UAC and integrity levels}{Level: Beginner–Intermediate · Systems}{Study time: 7–9 hours}
+
+The operating system is the first concrete security boundary a student meets. Every file, process and network socket is ultimately mediated by the kernel, which decides who may do what. If the operating system's access control is misconfigured, higher-level defences such as firewalls or antivirus software can often be bypassed with little effort.
+
+This chapter compares the two dominant families of access control. It first explains the POSIX model used by Linux, macOS and other Unix-like systems, including the special permission bits that are a frequent source of privilege escalation. It then moves beyond simple permission modes to access control lists, Linux capabilities and mandatory access control frameworks. The second half is devoted to Windows: security identifiers, access tokens, User Account Control, the registry and mandatory integrity levels.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Read, interpret and set POSIX permissions in both symbolic and octal notation.
+  \item Explain the purpose and the risks of the SetUID, SetGID and sticky bits.
+  \item Describe how ACLs, capabilities and mandatory access control (SELinux, AppArmor) refine the basic permission model.
+  \item Explain the roles of SIDs, access tokens, UAC and integrity levels in Windows.
+  \item Identify common operating-system misconfigurations that enable privilege escalation or lateral movement.
+\end{itemize}
+\end{outcomesbox}
+
+\section{POSIX discretionary access control: model and mechanics}\label{sec:2.1}
+POSIX systems implement \textbf{discretionary access control (DAC)}: the owner of a file decides who else may access it. Every file carries an owner (a user ID), a group (a group ID) and three sets of permission bits—for the \emph{owner}, the \emph{group} and \emph{others}. Each set contains three rights: \textbf{read (r)}, \textbf{write (w)} and \textbf{execute (x)}. For directories the meaning changes slightly: read allows listing the names, write allows creating or deleting entries, and execute allows entering the directory and reaching files inside it.
+
+Permissions are commonly written in octal, where read = 4, write = 2 and execute = 1. The mode \texttt{640} therefore means \emph{rw-} for the owner, \emph{r--} for the group and \emph{---} for everyone else—a typical setting for a configuration file that contains secrets. When a process requests access, the kernel checks the categories in order (owner, then group, then others) and applies only the \emph{first} category that matches. As a result, an owner who has removed their own read permission is denied access even if 'others' could read the file.
+
+\begin{examplebox}{Worked example}
+The command \texttt{chmod 750 /srv/reports} gives the owner full control (7 = 4+2+1), allows group members to list and enter the directory (5 = 4+1), and denies all access to other users (0). A web server running as an unrelated account will therefore be unable to read the reports, even if a vulnerability allows it to guess their path.
+\end{examplebox}
+
+\section{Special permissions: SetUID, SetGID and the sticky bit}\label{sec:2.2}
+Three additional bits modify how the basic permissions behave. The \textbf{SetUID} bit (octal 4000) causes an executable to run with the privileges of its \emph{owner} rather than of the user who launched it. This is how an ordinary user can change their own password with \texttt{passwd}, a program owned by root that must write to the protected \texttt{/etc/shadow} file. The \textbf{SetGID} bit (2000) works analogously for the group; on a directory it also makes new files inherit the directory's group, which is useful for shared project folders. The \textbf{sticky bit} (1000) on a world-writable directory such as \texttt{/tmp} allows users to delete only the files they own.
+
+SetUID programs owned by root are among the most attractive targets for attackers, because any flaw in them—a buffer overflow, an unsafe call to another program, a writable library path—immediately yields full administrative control. For this reason, system administrators should periodically inventory them (for example with \texttt{find / -perm -4000 -type f}), remove the bit wherever it is not strictly necessary, and prefer finer-grained mechanisms such as capabilities.
+
+\section{Beyond permission modes: ACLs, capabilities and mandatory access control}\label{sec:2.3}
+The owner–group–others model is simple, but it cannot express rules such as \emph{Alice may read this file and Bob may write it, but no one else may do either}. \textbf{POSIX access control lists (ACLs)} solve this by attaching additional entries for named users and groups, managed with \texttt{setfacl} and inspected with \texttt{getfacl}. A \emph{mask} entry limits the maximum rights any named entry can receive, which allows administrators to tighten access quickly.
+
+\textbf{Linux capabilities} divide the all-powerful root privilege into roughly forty independent units. A web server that only needs to bind to port 80 can receive \texttt{CAP\_NET\_BIND\_SERVICE} instead of running as root, so that a compromise of the server does not grant control over the whole system. Finally, \textbf{mandatory access control (MAC)} frameworks such as \textbf{SELinux} and \textbf{AppArmor} enforce a system-wide policy that even the file owner cannot override. Under MAC, a compromised process remains confined to the resources its policy explicitly allows—an application of the fail-safe defaults principle introduced in Chapter 1.
+
+\section{Windows security architecture: identities, tokens, UAC and the registry}\label{sec:2.4}
+Windows identifies every user, group and computer by a \textbf{security identifier (SID)}, a unique value that remains stable even if the account is renamed. When a user logs on, the Local Security Authority creates an \textbf{access token} that lists the user's SID, group SIDs and privileges. Every process the user starts inherits a copy of this token. Objects such as files, registry keys and services carry a \textbf{security descriptor} whose \textbf{discretionary access control list (DACL)} contains allow and deny entries. When a process requests access, the Security Reference Monitor compares the token against the DACL; explicit deny entries are evaluated before allow entries.
+
+\textbf{User Account Control (UAC)} addresses a historical problem: for years, most Windows users worked permanently as administrators. With UAC, an administrator receives two tokens at logon—a \emph{filtered} standard-user token used for everyday work and a \emph{full} token that is activated only after explicit consent. The \textbf{registry}, the hierarchical database that stores system and application configuration, is protected by the same security descriptors. Registry keys such as \texttt{HKLM\textbackslash{}...\textbackslash{}Run} are a favourite persistence location for malware, which is why their permissions and changes must be monitored.
+
+\section{Windows in depth: integrity levels, privileges and the lateral-movement surface}\label{sec:2.5}
+Since Windows Vista, every process and object also carries a \textbf{mandatory integrity level}: \emph{Low}, \emph{Medium}, \emph{High} or \emph{System}. A process may not write to an object with a higher integrity level, regardless of what the DACL says. This is a direct application of the Biba model (Chapter 1). Web browsers exploit it by running content-rendering processes at Low integrity, so that malicious web content cannot modify user files even if it achieves code execution.
+
+Certain \textbf{privileges} in a token are so powerful that they are effectively equivalent to full control. \texttt{SeDebugPrivilege} allows reading the memory of any process—including LSASS, where credentials are cached—while \texttt{SeImpersonatePrivilege} and \texttt{SeBackupPrivilege} have repeatedly been abused for privilege escalation. In a domain, these local weaknesses become a network problem: cached credentials, shared local administrator passwords and remote administration protocols (SMB, WMI, WinRM, RDP) allow an attacker to move laterally from one compromised workstation to many others. Countermeasures include unique local administrator passwords (Windows LAPS), Credential Guard, tiered administration and restricting which accounts may log on to which systems.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{POSIX and Windows access control compared}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Aspect} & \textbf{POSIX (Linux)} & \textbf{Windows} \\
+    \midrule
+    Identity & UID / GID & SID \\
+    Per-object policy & Mode bits + optional ACL & Security descriptor with DACL \\
+    Privilege elevation & SetUID, sudo, capabilities & UAC consent, privileges in token \\
+    Mandatory control & SELinux, AppArmor & Integrity levels, AppContainer \\
+    Common escalation path & Vulnerable SetUID binary & Abused token privilege, weak service ACL \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[DAC] Discretionary access control: the owner of a resource decides who may access it.
+  \item[SetUID] Permission bit that makes a program run with its owner's privileges.
+  \item[Capability (Linux)] An individual unit of root privilege that can be granted separately.
+  \item[MAC] Mandatory access control: a system-wide policy that owners cannot override (SELinux, AppArmor).
+  \item[Access token] Windows structure that carries a process's identity, group memberships and privileges.
+  \item[Integrity level] Windows label (Low–System) that prevents lower-integrity processes from writing to higher-integrity objects.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item POSIX systems control access through owner, group and others permissions; the first matching category decides.
+  \item SetUID and SetGID are necessary in a few places but are a prime target for privilege escalation and must be inventoried.
+  \item ACLs add fine-grained discretionary rules, capabilities split root privilege, and MAC confines even compromised processes.
+  \item Windows combines SIDs, access tokens and DACLs; UAC separates everyday work from administrative actions.
+  \item Integrity levels and careful privilege management limit both local escalation and lateral movement across a domain.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item A file has mode \texttt{604} and is owned by alice. Can alice read it? Can bob? Explain the evaluation order that produces your answer.
+  \item Why is a vulnerable root-owned SetUID binary more dangerous than the same vulnerability in an ordinary program?
+  \item Compare Linux capabilities with Windows token privileges. Which security principle do both mechanisms implement?
+  \item Explain how shared local administrator passwords enable lateral movement, and describe two countermeasures.
+\end{enumerate}
+
+\part{Adversaries and Attacks}
+% ============================================================
+% Chapter 3: Threat Actors, Motivations and Attack Lifecycle Models
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Threat Actors, Motivations and Attack Lifecycle Models}\label{ch:3}
+\chaptermeta{Actor taxonomy · The hacker spectrum · Cyber Kill Chain · MITRE ATT\&CK · Diamond Model and D3FEND · Threat intelligence and sharing}{Level: Beginner–Intermediate · Adversary thinking}{Study time: 6–8 hours}
+
+Defences are only meaningful in relation to the adversaries they are meant to stop. A small business and a national energy operator face very different opponents, with different goals, resources and patience. This chapter therefore shifts the perspective from the system to the attacker.
+
+We begin by classifying threat actors according to motivation and capability, and by clarifying the ethical and legal distinctions behind the familiar 'hat' terminology. We then study three complementary models that describe how attacks unfold: the Lockheed Martin Cyber Kill Chain, the MITRE ATT\&CK knowledge base and the Diamond Model of intrusion analysis. The chapter concludes with cyber threat intelligence—how knowledge about adversaries is produced, evaluated and shared responsibly.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Classify threat actors by motivation, capability and persistence, and relate them to appropriate defences.
+  \item Distinguish white-, grey- and black-hat activity on the basis of authorisation and intent.
+  \item Map an attack to the phases of the Cyber Kill Chain and to ATT\&CK tactics and techniques.
+  \item Use the Diamond Model to structure the analysis of an intrusion.
+  \item Describe the intelligence lifecycle and apply the Traffic Light Protocol when sharing information.
+\end{itemize}
+\end{outcomesbox}
+
+\section{A taxonomy of threat actors}\label{sec:3.1}
+Threat actors are usefully grouped by what they want and what they can do. \textbf{Nation-state groups}, often called \emph{advanced persistent threats (APTs)}, pursue espionage, sabotage or influence; they can afford zero-day exploits and supply-chain operations and may remain inside a network for months or years. \textbf{Cybercriminals} are motivated by profit; the ransomware-as-a-service economy has given even moderately skilled affiliates access to professional tooling. \textbf{Hacktivists} seek publicity for a political or social cause, typically through denial-of-service attacks, website defacement or leaks.
+
+\textbf{Insiders} deserve special attention because they already hold legitimate access and therefore defeat perimeter-based assumptions. A \emph{malicious} insider may steal data or sabotage systems out of greed or grievance, whereas a \emph{negligent} insider causes harm unintentionally, for instance through misconfiguration or by falling for a phishing email. Understanding which actors are relevant allows an organisation to select controls in proportion to the real risk rather than to the most sensational headlines.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Threat actor profiles}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Actor} & \textbf{Motivation} & \textbf{Capability} & \textbf{Typical dwell time} & \textbf{Characteristic techniques} \\
+    \midrule
+    Nation-state APT & Espionage, sabotage, influence & Very high & Months to years & Spear-phishing, living-off-the-land, covert command and control \\
+    Cybercriminal & Financial gain & Medium to high & Days to weeks & Phishing, ransomware, data theft for extortion \\
+    Hacktivist & Ideology, publicity & Low to medium & Hours to days & DDoS, defacement, doxing \\
+    Malicious insider & Gain, grievance & Medium (authorised access) & Variable & Privilege abuse, data exfiltration \\
+    Negligent insider & None (error) & Low (unwitting) & — & Misconfiguration, password reuse \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{The hacker spectrum: ethics and legality}\label{sec:3.2}
+The popular 'hat' vocabulary classifies \textbf{authorisation and intent}, not technical skill. A \textbf{white-hat} (ethical) hacker tests systems only with explicit, written permission and within an agreed scope, reporting findings so that they can be fixed. A \textbf{black-hat} hacker acts without authorisation and with malicious or self-serving intent. Between them lies the \textbf{grey-hat}, who may act without permission but without clear malice—for example, by scanning a company's website and then informing it of a vulnerability.
+
+Students should understand that good intentions do not create legal authorisation. In most jurisdictions, including those implementing the EU Directive on attacks against information systems, accessing a system without permission is a criminal offence even if no damage occurs. This is why professional penetration testing (Chapter 10) always begins with a signed scope and rules of engagement, and why coordinated vulnerability disclosure programmes and bug bounties exist: they convert grey-hat curiosity into authorised, protected research.
+
+\section{The Lockheed Martin Cyber Kill Chain}\label{sec:3.3}
+The \textbf{Cyber Kill Chain}, published by Lockheed Martin in 2011, describes a targeted intrusion as seven consecutive phases: \textbf{reconnaissance} (gathering information about the target), \textbf{weaponisation} (pairing an exploit with a payload), \textbf{delivery} (for example, an email attachment), \textbf{exploitation} (triggering the vulnerability), \textbf{installation} (establishing persistence), \textbf{command and control} (opening a remote channel) and \textbf{actions on objectives} (data theft, encryption, sabotage).
+
+The model's key insight is defensive: because the attacker must succeed at \emph{every} phase, the defender needs to break the chain only \emph{once}. Early interruption is cheaper—blocking a malicious attachment during delivery avoids an expensive incident response later. The model has limitations, however. It was designed around malware-based intrusions entering from outside, and it describes insider threats, credential abuse and cloud attacks less well. For that reason it is usually combined with the more granular ATT\&CK framework.
+
+\section{MITRE ATT\&CK: tactics, techniques and procedures}\label{sec:3.4}
+\textbf{MITRE ATT\&CK} is a publicly available knowledge base of adversary behaviour, built from observations of real intrusions. It is organised as a matrix. The columns are \textbf{tactics}—the attacker's short-term goals, such as \emph{Initial Access}, \emph{Execution}, \emph{Persistence}, \emph{Privilege Escalation}, \emph{Defense Evasion}, \emph{Credential Access}, \emph{Lateral Movement} and \emph{Exfiltration}. Each column contains \textbf{techniques} that describe \emph{how} the goal is achieved; for example, T1059.001 denotes command execution through PowerShell. \textbf{Procedures} are the concrete ways a specific group has used a technique.
+
+ATT\&CK gives defenders a common language. A security team can map its detection rules to techniques and immediately see where coverage is missing; a threat-intelligence report can state which techniques a group uses; and a red team can emulate those techniques to test whether the defences actually work. The emphasis on \emph{behaviour} rather than on easily changed indicators such as file hashes is what makes the framework durable.
+
+\section{The Diamond Model and MITRE D3FEND}\label{sec:3.5}
+The \textbf{Diamond Model of Intrusion Analysis} represents every malicious event through four connected features: the \textbf{adversary}, the \textbf{capability} (tools and malware), the \textbf{infrastructure} (domains, servers, IP addresses) and the \textbf{victim}. The strength of the model lies in \emph{pivoting}: once an analyst knows one vertex, the connections suggest where to look next. A malware sample (capability) may reveal a command-and-control domain (infrastructure), whose registration details may connect to other victims and eventually to an adversary profile.
+
+Whereas ATT\&CK catalogues offensive behaviour, \textbf{MITRE D3FEND} catalogues defensive countermeasures—such as \emph{process spawn analysis} or \emph{credential hardening}—and links them to the offensive techniques they counter. Used together, the Kill Chain answers \emph{when} to intervene, ATT\&CK \emph{what} the adversary does, the Diamond Model \emph{who and with what}, and D3FEND \emph{which control} addresses each behaviour.
+
+\section{Cyber threat intelligence: lifecycle, types and responsible sharing}\label{sec:3.6}
+\textbf{Cyber threat intelligence (CTI)} is information about adversaries that has been collected, analysed and put into context so that it supports a decision. It is produced through an \textbf{intelligence lifecycle}: \emph{direction} (defining what decision-makers need to know), \emph{collection}, \emph{processing}, \emph{analysis}, \emph{dissemination} and \emph{feedback}. Intelligence is often divided into three levels. \textbf{Strategic} intelligence informs executives about trends and risks; \textbf{operational} intelligence describes campaigns and actors; \textbf{tactical} intelligence provides technical details such as techniques and indicators of compromise.
+
+Intelligence gains value when it is shared, but sharing must respect the source's wishes. The \textbf{Traffic Light Protocol (TLP 2.0)} labels information as \emph{TLP:RED} (named recipients only), \emph{TLP:AMBER} (the recipient's organisation, on a need-to-know basis), \emph{TLP:GREEN} (the wider community) or \emph{TLP:CLEAR} (public). Machine-readable exchange relies on \textbf{STIX}, a standard language for describing threat information, and \textbf{TAXII}, a protocol for transporting it. Sector communities such as Information Sharing and Analysis Centres (ISACs) allow organisations facing similar threats to warn each other quickly.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[APT] Advanced persistent threat: a well-resourced actor that maintains long-term covert access.
+  \item[Kill Chain] Seven-phase model of a targeted intrusion, from reconnaissance to actions on objectives.
+  \item[TTPs] Tactics, techniques and procedures: the behavioural description of how an adversary operates.
+  \item[Diamond Model] Analytic model linking adversary, capability, infrastructure and victim.
+  \item[TLP] Traffic Light Protocol: labels that define how widely shared information may be redistributed.
+  \item[STIX / TAXII] Standard language (STIX) and transport protocol (TAXII) for exchanging threat intelligence.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Threat actors differ in motivation, capability and persistence; defences should be proportionate to the actors that are actually relevant.
+  \item The 'hat' terminology concerns authorisation and intent; unauthorised access is illegal regardless of motive.
+  \item The Kill Chain shows that breaking any single phase stops an intrusion, and earlier interruption is cheaper.
+  \item ATT\&CK describes adversary behaviour in detail and provides a common language for detection, intelligence and testing.
+  \item The Diamond Model supports pivoting during analysis, and intelligence must be shared under clear rules such as TLP.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why are insider threats difficult to address with perimeter-based controls? Propose two controls that are effective against them.
+  \item Map a typical phishing-to-ransomware attack onto the seven phases of the Cyber Kill Chain.
+  \item Explain why detections based on ATT\&CK techniques are more durable than detections based on file hashes.
+  \item A partner shares a report marked TLP:AMBER. May you forward it to a supplier? Justify your answer.
+\end{enumerate}
+
+% ============================================================
+% Chapter 4: Taxonomy of Malware and Malicious Code
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Taxonomy of Malware and Malicious Code}\label{ch:4}
+\chaptermeta{Viruses · Worms · Trojans · Spyware · Ransomware · Fileless attacks · Rootkits · Indicators of compromise · Stuxnet, WannaCry, Emotet}{Level: Intermediate · Malicious code}{Study time: 8–10 hours}
+
+Malicious software is the most visible instrument of cyberattacks, yet media reports often use its terminology loosely. Calling every infection a 'virus' is not only imprecise; it can lead to the wrong response. A worm must be contained by isolating networks, whereas a trojan must be stopped by preventing execution. Precise classification is therefore an operational necessity, not an academic exercise.
+
+This chapter organises malware by \emph{mechanism}—how it spreads, how it hides and what it does—rather than by the names of individual families. It then examines the advanced techniques that allow modern implants to evade detection, explains how compromise can be recognised on hosts and networks, dissects the modern ransomware operation and draws lessons from three landmark cases.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Distinguish malware classes by replication, propagation and payload, and choose the appropriate containment strategy.
+  \item Explain fileless execution, polymorphism and rootkits, and why they defeat signature-based detection.
+  \item Recognise host and network indicators of compromise and explain why correlation is required.
+  \item Describe the stages of a modern ransomware attack and the correct order of response.
+  \item Extract defensive lessons from Stuxnet, WannaCry and Emotet.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Core classifications: what replicates, what deceives, what profits}\label{sec:4.1}
+A \textbf{virus} attaches itself to a host file or document and replicates only when that host is executed, so it usually depends on some user action. A \textbf{worm}, by contrast, is self-contained and spreads across networks on its own by exploiting vulnerable services; the Morris Worm and WannaCry's propagation over the SMB protocol are classic examples. A \textbf{trojan} does not replicate at all. It masquerades as legitimate software to persuade the victim to run it, and its danger lies in its social plausibility and in the payloads it carries.
+
+Other classes are defined by what they do rather than how they spread. \textbf{Spyware} secretly collects user activity or data; \textbf{adware} monetises the victim's attention and often serves as a gateway for spyware; \textbf{keyloggers} record keystrokes to capture passwords. \textbf{Ransomware} denies access to data, either by encrypting files (\emph{crypto-ransomware}) or by locking the system (\emph{locker ransomware}), and today usually combines encryption with data theft—the so-called \emph{double extortion}.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Malware classes and their primary defences}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Class} & \textbf{Self-replicating?} & \textbf{Needs user action?} & \textbf{Primary defence} \\
+    \midrule
+    Virus & Yes, via host files & Usually & Execution prevention, antivirus, patching \\
+    Worm & Yes, across the network & No & Network segmentation, prompt patching of services, IDS \\
+    Trojan & No & Yes (deception) & Application allow-listing, code signing, user awareness \\
+    Ransomware & Sometimes (worm-like) & Often (phishing, exposed RDP) & Immutable backups, MFA, EDR, patching \\
+    Spyware / keylogger & No & Yes (bundled software) & Least privilege, monitoring of outbound traffic \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{Advanced mechanics: fileless execution, polymorphism and rootkits}\label{sec:4.2}
+Traditional antivirus products scan files on disk and compare them with known signatures. Modern implants are designed to defeat exactly this approach. \textbf{Fileless malware} resides in memory, in the registry, in WMI subscriptions or in scheduled tasks, and abuses legitimate system tools such as PowerShell, \texttt{mshta} or \texttt{wmic}. This practice is called \emph{living off the land}, because the attacker uses what is already installed. Techniques such as \emph{reflective DLL injection} and \emph{process hollowing} load malicious code into the memory of a trusted process, so that no suspicious executable ever touches the disk.
+
+\textbf{Polymorphic} and \textbf{metamorphic} code changes its byte representation with every infection—through encryption wrappers or instruction substitution—while its behaviour remains the same. A signature written for one copy therefore fails to match the next, which is why defenders turn to behavioural detection and pattern-based rules such as YARA (Chapter 11). \textbf{Rootkits} go one step further: operating in user mode, in the kernel, in the boot process or even in firmware, they intercept system queries in order to hide files, processes and network connections. Because a rootkit controls what the compromised system reports about itself, it must be detected from \emph{outside} that system—through secure boot, memory forensics or offline disk analysis.
+
+\section{Indicators of compromise on hosts and networks}\label{sec:4.3}
+A compromise usually reveals itself as a \textbf{deviation from the normal baseline}. On a host, typical signs include sustained CPU, disk or network activity without a corresponding user workload; new persistence mechanisms such as registry \emph{Run} keys, services, cron jobs or WMI subscriptions; unusual process trees, for example a word processor launching a command shell; and evidence that defences were tampered with, such as a disabled endpoint agent or a cleared security log (Windows Event ID 1102). On the network, suspicious signs include regular 'beaconing' connections at fixed intervals, very long or random-looking domain names, and TLS client fingerprints that do not match any legitimate software in the organisation.
+
+An important principle of analysis is that \textbf{a single indicator only suggests; several correlated indicators confirm}. Administrators occasionally run PowerShell, and legitimate software sometimes contacts unusual domains. Confidence grows when independent observations point to the same conclusion—for example, an Office document spawning PowerShell, which then creates a Run key and begins contacting a newly registered domain every sixty seconds. Chapter 11 turns this principle into detection rules, and Chapter 12 applies it to forensic analysis.
+
+\section{Droppers, loaders, remote-access trojans and wipers}\label{sec:4.4}
+Modern intrusions are rarely carried out by a single program. Instead, a chain of specialised components hands control from one stage to the next. A \textbf{dropper} carries its payload inside itself and writes it to the system. A \textbf{downloader} or \textbf{loader}—Emotet, TrickBot and QakBot are well-known examples—fetches further modules from the internet after the initial infection, which has enabled a \emph{crimeware-as-a-service} economy in which one group sells access to another. A \textbf{remote access trojan (RAT)} gives the attacker interactive control: keystroke logging, screen capture, file transfer and use of the victim as a proxy.
+
+A \textbf{wiper} such as Shamoon, WhisperGate or HermeticWiper is designed purely for destruction, although it may disguise itself as ransomware. Correct identification is critical here: because no decryption key exists, a response plan that considers paying the ransom is not only futile but actively harmful, as it delays recovery from backups. When analysing an incident, analysts should therefore name the \emph{stage} they have observed, not merely the family—'QakBot loader, before RAT deployment' is far more useful to responders than 'QakBot'.
+
+\section{Anatomy of modern ransomware}\label{sec:4.5}
+Contemporary crypto-ransomware relies on \textbf{hybrid encryption}. Each file is encrypted with a fast symmetric algorithm (AES or ChaCha20) and a unique key; these keys are in turn encrypted with the attacker's public key (RSA or elliptic-curve), so that only the attacker can recover them. Before encryption begins, the malware typically deletes Windows shadow copies and backup catalogues (for example with \texttt{vssadmin delete shadows}) in order to prevent easy recovery, and it attempts to disable security tools, sometimes by rebooting the system into safe mode where endpoint agents do not run.
+
+Pressure on the victim is applied through \textbf{multiple extortion}: data are encrypted, stolen data are threatened with publication on a leak site, and some groups add denial-of-service attacks or contact the victim's customers directly. The correct response follows a disciplined order: first \textbf{isolate} affected hosts and compromised identities; then \textbf{preserve evidence}, including memory images and the ransom notes, which contain victim identifiers; next \textbf{identify the strain} and check whether a free decryptor exists (for instance on the No More Ransom portal); and only then \textbf{restore} from backups that are known to be clean. Paying the ransom guarantees neither decryption nor deletion of the stolen data, and it may also raise legal issues.
+
+\begin{keybox}{Key principle}
+The single most effective technical control against ransomware is a backup that the attacker cannot reach or modify: offline or immutable, regularly tested, and protected by separate credentials (see Chapter 13).
+\end{keybox}
+
+\section{Landmark case studies: Stuxnet, WannaCry and Emotet}\label{sec:4.6}
+\textbf{Stuxnet} (discovered in 2010) targeted Siemens programmable logic controllers that operated uranium-enrichment centrifuges. It used several zero-day vulnerabilities, crossed an air gap via USB media, carried drivers signed with stolen certificates, and altered the physical behaviour of machinery while showing operators normal readings. Its lesson is that operational-technology environments cannot rely on isolation alone (Chapter 13).
+
+\textbf{WannaCry} (2017) combined ransomware with a worm that exploited the SMBv1 vulnerability MS17-010 (the \emph{EternalBlue} exploit). Within hours it disrupted organisations worldwide, including hospitals of the UK's National Health Service, even though a patch had been available for two months. The lesson is that slow patching and flat, unsegmented networks reinforce each other: once a worm enters, nothing slows its spread. \textbf{Emotet} (2014–2021) evolved from a banking trojan into a loader-as-a-service distributed through malicious email, delivering TrickBot and ultimately Ryuk ransomware, until an international law-enforcement operation dismantled its infrastructure. Its lesson is that criminal ecosystems operate like supply chains, and defending against the initial loader stage prevents everything that follows.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Worm] Self-contained malware that spreads across networks without user action.
+  \item[Trojan] Malware disguised as legitimate software that does not self-replicate.
+  \item[Fileless malware] Malicious code that runs from memory or system tools without dropping executables on disk.
+  \item[Rootkit] Malware that hides its presence by intercepting the operating system's own reporting.
+  \item[Loader] Malware stage that downloads and runs further modules after initial infection.
+  \item[Double extortion] Ransomware tactic combining encryption with the threat of publishing stolen data.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Malware is best classified by mechanism—replication, propagation and payload—because each mechanism calls for a different containment strategy.
+  \item Fileless techniques, polymorphism and rootkits defeat file signatures and require behavioural and out-of-band detection.
+  \item Indicators of compromise gain meaning through correlation; a single anomaly is only a lead.
+  \item Modern intrusions are staged chains of droppers, loaders, RATs and final payloads such as ransomware or wipers.
+  \item Stuxnet, WannaCry and Emotet illustrate the limits of isolation, the cost of slow patching and the supply-chain nature of cybercrime.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why does the containment strategy for a worm differ from that for a trojan? Give one concrete measure for each.
+  \item Explain why process hollowing defeats hash-based application allow-listing.
+  \item List three host indicators and two network indicators that, together, would convince you that a workstation is compromised.
+  \item Why is it dangerous to treat a wiper as if it were ransomware?
+\end{enumerate}
+
+% ============================================================
+% Chapter 5: Human Factors, Social Engineering and Digital Safety
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Human Factors, Social Engineering and Digital Safety}\label{ch:5}
+\chaptermeta{Psychology of persuasion · Phishing and its variants · Physical vectors · Stalkerware and metadata · Business email compromise · Security culture}{Level: Beginner · Human-centred}{Study time: 5–7 hours}
+
+Technical controls protect systems, but systems are operated by people, and people can be persuaded. Social engineering exploits trust, helpfulness, fear and habit to make a legitimate user perform an action that benefits the attacker—opening an attachment, revealing a password, approving a payment. Industry breach reports consistently find that the human element is involved in the majority of successful intrusions.
+
+This chapter explains why social engineering works, surveys the main attack methods, and examines two threats that have grown sharply in recent years: business email compromise and multi-factor authentication fatigue. It also addresses personal digital safety, including stalkerware and metadata leakage. The chapter closes with a constructive message: users are not the 'weakest link' to be blamed, but a detection layer to be strengthened through good design and a positive reporting culture.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Explain the psychological principles that social engineers exploit.
+  \item Distinguish phishing, spear-phishing, whaling, vishing, smishing, pretexting and baiting.
+  \item Describe physical and observational attack vectors and their countermeasures.
+  \item Analyse a business email compromise and an MFA-fatigue attack, and propose layered defences.
+  \item Design awareness measures and metrics that reduce susceptibility without blaming users.
+\end{itemize}
+\end{outcomesbox}
+
+\section{The psychology of exploitation}\label{sec:5.1}
+Social engineering succeeds because it targets mental shortcuts that normally serve us well. The psychologist Robert Cialdini described several \textbf{principles of persuasion} that attackers routinely exploit. \emph{Authority}: people tend to obey instructions that appear to come from a manager, the IT department or the police. \emph{Urgency and scarcity}: a deadline ('your account will be closed in one hour') reduces the time available for careful thought. \emph{Social proof}: we assume an action is safe if others seem to be doing it. \emph{Liking} and \emph{reciprocity}: we are more willing to help someone who is friendly or who has done us a small favour.
+
+These principles are powerful because they bypass deliberate reasoning and trigger fast, automatic responses. Stress, fatigue and information overload make everyone more susceptible, regardless of intelligence or technical skill. Effective defences therefore do not rely on people being permanently alert; they introduce \emph{friction at the right moment}—for example, a mandatory call-back before any change of bank details—so that the automatic response is interrupted when it matters most.
+
+\section{Attack methods: from bulk phishing to pretexting}\label{sec:5.2}
+\textbf{Phishing} is the mass distribution of fraudulent messages that imitate trusted organisations in order to steal credentials or deliver malware. \textbf{Spear-phishing} targets a specific person or group and uses researched details—names of colleagues, current projects—to appear credible. \textbf{Whaling} is spear-phishing aimed at senior executives. The same techniques are applied over other channels: \textbf{vishing} uses voice calls, often with spoofed caller IDs and, increasingly, AI-generated voices, while \textbf{smishing} uses SMS or messaging apps.
+
+\textbf{Pretexting} involves inventing a plausible scenario—an auditor who needs a report, a technician who must 'verify' a password—to obtain information or access. \textbf{Baiting} leaves an attractive item, such as a USB stick labelled 'Salaries 2026', where a victim will find it and plug it in. The common element is that the attacker creates a situation in which the harmful action feels normal, helpful or urgent.
+
+\section{Physical and observational vectors}\label{sec:5.3}
+Not every social-engineering attack happens online. \textbf{Tailgating} (or \emph{piggybacking}) means following an authorised person through a secured door, often while carrying boxes so that holding the door open feels like simple courtesy. \textbf{Shoulder surfing} is observing a screen or keypad to capture passwords or PINs, and \textbf{dumpster diving} is searching discarded paper and equipment for useful information. Physical access is particularly dangerous because it can bypass many network controls entirely—an attacker who reaches an unlocked workstation or a network port is already 'inside'.
+
+Countermeasures combine technology and behaviour: mantraps and turnstiles that admit one person at a time, visible visitor badges, a clear-desk and clear-screen policy, privacy filters on displays, cross-cut shredding and certified destruction of storage media. Staff should feel entitled to challenge an unfamiliar person politely; this is easier when management explicitly supports it.
+
+\section{Personal digital safety: stalkerware and metadata leakage}\label{sec:5.4}
+Some of the most harmful attacks are carried out not by distant criminals but by people close to the victim. \textbf{Stalkerware} is commercially available software that, once installed on a phone, secretly forwards messages, location, photos and call logs to another person. It is frequently associated with intimate-partner abuse. Warning signs include unexplained battery drain, unknown device-administrator apps and a partner who knows things they should not. Because removing stalkerware can alert the abuser and escalate danger, victims should seek support from specialist organisations before acting.
+
+\textbf{Metadata}—data about data—can reveal far more than intended. A photograph's EXIF metadata may contain the exact GPS coordinates where it was taken, the device model and the time; office documents may include the author's name and revision history. Before sharing files publicly, users should remove such metadata, for instance with the \texttt{exiftool -all=} command or the built-in 'remove properties' features of operating systems and office suites.
+
+\section{Business email compromise and MFA fatigue}\label{sec:5.5}
+\textbf{Business email compromise (BEC)} is a fraud in which the attacker impersonates an executive, supplier or lawyer—either by compromising a real mailbox or by registering a look-alike domain—and requests an urgent payment or a change of bank details. BEC often involves no malware at all, so it evades technical filters; it relies entirely on authority and urgency. Effective defences are procedural as well as technical: payment changes must be verified through a known phone number, high-value transfers require approval by two people (\emph{maker–checker}), and email authentication (SPF, DKIM and a DMARC policy of \texttt{p=reject}) makes domain spoofing much harder.
+
+\textbf{MFA fatigue} (or \emph{push bombing}) targets users of push-notification authentication. Having stolen a password, the attacker triggers dozens of login approvals, often late at night, until the exhausted user taps 'Approve'—sometimes after a phone call from a fake help desk. Countermeasures include \emph{number matching} (the user must type a code shown on the login screen), limits on the number of prompts, and phishing-resistant methods such as FIDO2 security keys (Chapter 8).
+
+\section{Building a report-positive security culture}\label{sec:5.6}
+Awareness programmes often measure the wrong thing. The \textbf{click rate} in simulated phishing campaigns mainly reflects how difficult the simulation was; it can be pushed up or down at will. A far more meaningful metric is the \textbf{report rate}—the proportion of users who report a suspicious message—together with the \textbf{time to first report}. A single early report allows the security team to remove a malicious message from every mailbox before most recipients have even opened it.
+
+Culture determines whether people report. If employees who click on a phishing link are publicly shamed or punished, they will hide their mistakes, and the organisation loses its earliest warning. A report-positive culture makes reporting easy (a single button in the mail client), thanks people for every report—including false alarms—and treats mistakes as learning opportunities. In this way, users become an active detection layer rather than a liability.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Social engineering] Manipulating people into performing actions or revealing information that benefit the attacker.
+  \item[Spear-phishing] Phishing tailored to a specific individual or group using researched details.
+  \item[Pretexting] Inventing a plausible scenario to obtain information or access.
+  \item[BEC] Business email compromise: fraud that impersonates trusted parties to redirect payments.
+  \item[MFA fatigue] Flooding a user with authentication prompts until one is approved.
+  \item[DMARC] Email policy that tells receivers how to treat messages failing SPF/DKIM checks.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Social engineering exploits automatic responses to authority, urgency, social proof, liking and reciprocity.
+  \item Phishing appears in many forms and channels; pretexting and baiting create situations in which harmful actions feel normal.
+  \item Physical access can bypass network controls and must be protected by both technology and staff behaviour.
+  \item BEC and MFA fatigue are countered by verification procedures, dual approval, email authentication and phishing-resistant MFA.
+  \item Report rate, not click rate, is the metric that matters; a blame-free culture turns users into a detection layer.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Identify the persuasion principles used in the message: 'This is the CEO. I need the supplier payment sent in the next 30 minutes—do not call, I am in a meeting.'
+  \item Why is BEC difficult to stop with antivirus or sandboxing? Which controls are effective?
+  \item Explain how number matching defeats a basic MFA-fatigue attack.
+  \item Argue why report rate is a better awareness metric than click rate.
+\end{enumerate}
+
+% ============================================================
+% Chapter 6: Network Security: Attacks, Defences and Botnet Topologies
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Network Security: Attacks, Defences and Botnet Topologies}\label{ch:6}
+\chaptermeta{DoS and DDoS · Amplification · Botnets and command-and-control · Man-in-the-middle · Firewalls · VPNs · Segmentation, NAC and wireless security}{Level: Intermediate · Networks}{Study time: 8–10 hours}
+
+Networks connect everything, and whatever connects can also be attacked. This chapter examines how adversaries abuse network protocols to disrupt availability, to intercept or manipulate traffic, and to coordinate thousands of compromised devices. It assumes basic familiarity with the TCP/IP model; where a protocol detail is essential, it is explained in the text.
+
+The first half of the chapter focuses on attacks: denial of service and its distributed and amplified forms, the architecture and lifecycle of botnets, and man-in-the-middle techniques. The second half turns to defence. It shows how layered DDoS mitigation works in practice and introduces the building blocks of network defence—firewalls, virtual private networks, segmentation, network access control and wireless security—each with a clear statement of what it can and cannot achieve.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Distinguish volumetric, protocol and application-layer denial-of-service attacks, and explain amplification.
+  \item Compare centralised and peer-to-peer botnet architectures and describe the botnet lifecycle.
+  \item Explain ARP spoofing, DNS spoofing and TLS stripping, and the controls that prevent them.
+  \item Design a layered DDoS defence from the network edge to the application.
+  \item Describe the roles and limits of firewalls, VPNs, segmentation, 802.1X and WPA3.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Denial of service: DoS, DDoS and amplification}\label{sec:6.1}
+A \textbf{denial-of-service (DoS)} attack aims to make a service unavailable to its legitimate users. When the attack traffic comes from many sources at once, it is called a \textbf{distributed denial of service (DDoS)}, and it becomes much harder to block because no single source can simply be filtered out. DDoS attacks fall into three broad families. \textbf{Volumetric} attacks saturate the victim's bandwidth. \textbf{Protocol} attacks exhaust state in servers or network devices; the classic \emph{SYN flood} sends many TCP connection requests without completing the handshake, filling the server's table of half-open connections. \textbf{Application-layer} attacks send seemingly legitimate but expensive requests—such as search queries—that exhaust the application itself.
+
+\textbf{Amplification} allows an attacker with modest bandwidth to generate enormous floods. The attacker sends small requests with a forged source address (the victim's) to public servers that return much larger responses. Protocols such as DNS, NTP and memcached have been abused in this way, with amplification factors ranging from tens to tens of thousands. Two measures address the root cause: networks should drop outgoing packets with forged source addresses (\emph{ingress filtering}, BCP 38), and operators should not expose open resolvers or other amplifiers to the internet.
+
+\section{Botnets: architectures, lifecycle and IoT conscription}\label{sec:6.2}
+A \textbf{botnet} is a network of compromised devices ('bots') controlled remotely by an operator. In a \textbf{centralised} architecture, bots receive commands from one or a few command-and-control (C2) servers, historically over IRC and today mostly over HTTPS. This design is simple but fragile: seizing the C2 servers disables the botnet. \textbf{Peer-to-peer} botnets distribute commands among the bots themselves, which makes takedowns much harder. Operators also use \emph{domain generation algorithms} that produce thousands of candidate domain names every day, so that defenders cannot pre-emptively block them all.
+
+A botnet's lifecycle comprises \textbf{recruitment} (infecting new devices), \textbf{command and control}, \textbf{monetisation} (DDoS-for-hire, spam, credential stuffing, cryptocurrency mining) and \textbf{maintenance} (updating and defending the bots). The \textbf{Mirai} botnet of 2016 showed how weak the Internet of Things was: it simply tried a list of about sixty factory-default usernames and passwords on cameras and routers, recruited hundreds of thousands of devices, and launched attacks that disrupted major internet services. The lesson for manufacturers and operators is clear—unique credentials, automatic updates and no unnecessary remote services.
+
+\section{Interception and manipulation: man-in-the-middle attacks}\label{sec:6.3}
+In a \textbf{man-in-the-middle (MITM)} attack, the adversary positions themselves between two communicating parties, so that traffic passes through a system they control. On a local network, \textbf{ARP spoofing} achieves this by sending forged messages that associate the attacker's hardware address with the IP address of the default gateway; victims then send their traffic to the attacker. \textbf{DNS spoofing} returns false answers to name queries, redirecting users to malicious servers. On public Wi-Fi, an \emph{evil twin} access point with a familiar network name can attract unsuspecting clients.
+
+Once in the middle, the attacker can passively \textbf{sniff} unencrypted traffic or actively modify it—for instance through \emph{TLS stripping}, which downgrades a connection from HTTPS to HTTP. Cryptography is the fundamental countermeasure: properly validated TLS (Chapter 7) makes intercepted traffic unreadable and tampering detectable, and \textbf{HTTP Strict Transport Security (HSTS)} prevents downgrades. At the network level, \emph{dynamic ARP inspection} and \emph{DHCP snooping} on switches, DNSSEC validation and 802.1X authentication reduce the opportunities for interception.
+
+\section{Layered DDoS defence in practice}\label{sec:6.4}
+No single device can absorb every DDoS attack, so defence is organised in layers, each handling what it does best. At the \textbf{upstream} layer, internet service providers and cloud scrubbing services absorb volumetric floods using capacity far larger than any individual organisation's link; anycast routing spreads the load across many data centres. At the \textbf{network edge}, routers apply access lists and rate limits, and \emph{remote-triggered black-holing} can sacrifice a single attacked address to protect the rest of the network.
+
+Closer to the service, \textbf{protocol defences} such as \emph{SYN cookies} allow servers to handle floods of half-open connections without storing state. At the \textbf{application} layer, content delivery networks, web application firewalls, caching and per-client rate limiting filter expensive requests, while challenges such as CAPTCHAs separate humans from bots. Finally, a documented \textbf{runbook}—who to call, how to activate scrubbing, how to communicate with customers—ensures that the organisation reacts in minutes rather than hours.
+
+\section{Firewalls and virtual private networks}\label{sec:6.5}
+A \textbf{firewall} enforces a policy about which traffic may pass between network zones. \emph{Packet filters} examine individual packets by address, port and protocol. \emph{Stateful} firewalls track connections, so that a reply is allowed only if it matches a request that was sent. \emph{Next-generation firewalls} additionally identify applications and users and may integrate intrusion prevention. Regardless of generation, one design rule is fundamental: the policy should \textbf{deny by default} and allow only explicitly required flows, in line with the fail-safe defaults principle.
+
+A \textbf{virtual private network (VPN)} creates an encrypted tunnel across an untrusted network. \textbf{IPsec} operates at the network layer and is common for site-to-site links; \textbf{TLS-based VPNs} are convenient for remote users; \textbf{WireGuard} is a modern protocol with a deliberately small code base and fixed, contemporary cryptography. It is important to understand what a VPN does \emph{not} do: it protects traffic in transit but does not make the connecting device trustworthy. A compromised laptop connected via VPN brings the attacker inside the network, which is one reason why organisations are moving towards Zero Trust access (Chapter 13).
+
+\section{Segmentation, network access control and wireless security}\label{sec:6.6}
+\textbf{Network segmentation} divides a network into zones—for example, user workstations, servers, management interfaces and guest Wi-Fi—and allows only the traffic that each zone genuinely needs. Segmentation does not prevent the first compromise, but it limits how far an attacker can move afterwards; the WannaCry case in Chapter 4 showed the cost of flat networks. \emph{Micro-segmentation} applies the same idea down to individual workloads.
+
+\textbf{Network access control (NAC)} decides whether a device may join the network at all. The IEEE \textbf{802.1X} standard requires each device to authenticate—usually with a certificate—before a switch port or wireless connection is activated, and can place non-compliant devices in a quarantine network. Wireless security has evolved considerably: WEP is completely broken, WPA2 is vulnerable to offline password guessing when weak passphrases are used, and \textbf{WPA3} introduces the SAE handshake, which resists such guessing and provides forward secrecy. In enterprises, WPA2/WPA3-Enterprise with 802.1X remains the recommended configuration.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[DDoS] Distributed denial of service: an availability attack launched from many sources simultaneously.
+  \item[Amplification] Using third-party servers that return large responses to small, spoofed requests.
+  \item[Botnet / C2] A network of compromised devices and the command-and-control channel that directs them.
+  \item[ARP spoofing] Forging ARP messages to redirect local traffic through the attacker.
+  \item[Stateful firewall] A firewall that tracks connections and permits replies only to legitimate requests.
+  \item[802.1X] Port-based network access control that authenticates devices before granting connectivity.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item DDoS attacks target bandwidth, protocol state or application resources; amplification multiplies the attacker's power through spoofing.
+  \item Botnets are controlled through centralised or peer-to-peer C2 and are monetised in many ways; Mirai exposed the weakness of default IoT credentials.
+  \item MITM attacks exploit trust in local protocols; validated TLS, HSTS and switch-level protections are the primary countermeasures.
+  \item DDoS defence is layered, from upstream scrubbing to application rate limiting, and depends on a prepared runbook.
+  \item Firewalls, VPNs, segmentation and NAC each solve specific problems—none of them makes a compromised device trustworthy.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Explain why an attacker using DNS amplification needs to forge the source IP address of their requests.
+  \item Why are peer-to-peer botnets harder to take down than centralised ones?
+  \item Describe how HSTS defeats a TLS-stripping attack on a public Wi-Fi network.
+  \item A company says, 'All remote staff use our VPN, so their laptops are safe.' Critically evaluate this statement.
+\end{enumerate}
+
+\part{Protection Mechanisms and Secure Engineering}
+% ============================================================
+% Chapter 7: Cryptographic Mechanisms and Public Key Infrastructure
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Cryptographic Mechanisms and Public Key Infrastructure}\label{ch:7}
+\chaptermeta{Symmetric and asymmetric encryption · Hash functions · Digital signatures · PKI and X.509 · TLS 1.3 · Key management}{Level: Intermediate · Applied cryptography}{Study time: 9–11 hours}
+
+Cryptography is the mathematical foundation of confidentiality, integrity and authenticity in digital systems. Chapter 6 ended with attacks that intercept and modify traffic; this chapter provides the tools that make such interception useless. The aim is not to derive the underlying mathematics but to build a precise understanding of what each primitive guarantees, how primitives are combined, and where real systems fail.
+
+The chapter first contrasts symmetric and asymmetric encryption and explains hash functions and digital signatures. It then shows how public key infrastructure (PKI) binds keys to identities through certificates, and dissects the TLS 1.3 handshake that protects most internet traffic today. It concludes with key management—the area where, in practice, most cryptographic failures occur.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Explain the difference between symmetric and asymmetric encryption and why practical systems combine them.
+  \item State the security properties of cryptographic hash functions and distinguish hashing from encryption.
+  \item Describe how digital signatures provide integrity, authenticity and (qualified) non-repudiation.
+  \item Explain the roles of CAs, RAs, certificate chains and revocation in a PKI.
+  \item Outline the TLS 1.3 handshake and identify common key-management failures.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Symmetric and asymmetric encryption}\label{sec:7.1}
+In \textbf{symmetric encryption}, the same secret key is used to encrypt and to decrypt. Modern symmetric algorithms such as \textbf{AES} and \textbf{ChaCha20} are extremely fast and, with 128- or 256-bit keys, are considered secure against all known practical attacks. Their weakness is logistical: both parties must already share the key, and a network of \emph{n} participants would need about n²/2 separate keys. Symmetric ciphers must also be used in an appropriate \emph{mode}; authenticated modes such as AES-GCM protect integrity as well as confidentiality.
+
+\textbf{Asymmetric (public-key) encryption} uses a mathematically related key pair. The \textbf{public key} can be distributed freely, while the \textbf{private key} is kept secret. Data encrypted with the public key can be decrypted only with the private key. Algorithms such as \textbf{RSA} and \textbf{elliptic-curve cryptography (ECC)} solve the key-distribution problem, but they are thousands of times slower than symmetric ciphers. Practical systems therefore use \textbf{hybrid encryption}: asymmetric techniques establish or protect a random symmetric \emph{session key}, and that key then encrypts the bulk data. Every TLS connection, and—as Chapter 4 showed—every modern ransomware attack, follows this pattern.
+
+\section{Cryptographic hash functions}\label{sec:7.2}
+A \textbf{cryptographic hash function} maps input of any length to a fixed-length output, the \emph{digest}. SHA-256, for instance, always produces 256 bits. Three properties make a hash function suitable for security. \textbf{Pre-image resistance}: given a digest, it is infeasible to find an input that produces it. \textbf{Second pre-image resistance}: given one input, it is infeasible to find a different input with the same digest. \textbf{Collision resistance}: it is infeasible to find \emph{any} two inputs with the same digest. MD5 and SHA-1 have lost collision resistance and must no longer be used for signatures; SHA-256, SHA-3 and BLAKE2 remain secure.
+
+Hashing is not encryption: there is no key and no way to 'decrypt' a digest. Hashes are used to verify file integrity, to index evidence in forensics (Chapter 12) and as building blocks of signatures. Combined with a secret key, they form an \textbf{HMAC}, which proves that a message came from someone who knows the key. For storing passwords, ordinary fast hashes are unsuitable, because attackers can test billions of guesses per second. Dedicated \textbf{password-hashing functions} such as Argon2, scrypt or bcrypt are deliberately slow and use a unique random \emph{salt} for each password.
+
+\section{Digital signatures and non-repudiation}\label{sec:7.3}
+A \textbf{digital signature} reverses the roles of the key pair. The signer computes a hash of the message and transforms it with their \emph{private} key; anyone can verify the result with the corresponding \emph{public} key. A valid signature demonstrates three things: the message has not been altered since it was signed (\textbf{integrity}), it was signed by the holder of the private key (\textbf{authenticity}), and the signer cannot easily claim otherwise later (\textbf{non-repudiation}). Common algorithms include RSA-PSS, ECDSA and Ed25519.
+
+Non-repudiation, however, is only as strong as the surrounding process. If the private key was stored unprotected on a shared computer, the signer can plausibly argue that someone else used it. Legal frameworks such as the EU \textbf{eIDAS} regulation therefore distinguish ordinary electronic signatures from \emph{qualified} electronic signatures, which require a qualified certificate and a certified signature-creation device, and which carry the legal effect of a handwritten signature.
+
+\section{Public key infrastructure and the X.509 certificate lifecycle}\label{sec:7.4}
+Public-key cryptography raises a new question: how do you know that a public key really belongs to the party you think it does? An attacker in the middle could substitute their own key. A \textbf{public key infrastructure (PKI)} answers this question by having a trusted \textbf{certificate authority (CA)} sign a \textbf{certificate} that binds a public key to an identity, such as a domain name. A \textbf{registration authority (RA)} verifies the applicant's identity before the CA issues the certificate. Certificates follow the \textbf{X.509} standard and contain, among other fields, the subject, the issuer, a validity period, the public key and extensions such as the \emph{Subject Alternative Name (SAN)}, which lists the domain names the certificate covers.
+
+Trust is organised as a \textbf{chain}: an offline \emph{root CA}, whose certificate is pre-installed in operating systems and browsers, signs \emph{intermediate CAs}, which in turn sign end-entity certificates. Verification walks up the chain to a trusted root. Certificates have a \textbf{lifecycle}—request (via a certificate signing request, CSR), issuance, deployment, renewal and, if a key is compromised, \textbf{revocation}, which is communicated through revocation lists (CRLs) or the online status protocol (OCSP). Because revocation checking is unreliable in practice, the industry is moving towards short-lived certificates renewed automatically with the ACME protocol.
+
+\section{TLS 1.3 and the applications of PKI}\label{sec:7.5}
+\textbf{Transport Layer Security (TLS)} protects web browsing (HTTPS), email transport, APIs and many other protocols. Version 1.3 (2018) simplified the protocol and removed obsolete, vulnerable options. The handshake requires only one round trip. The client sends a \emph{ClientHello} with its supported cipher suites and an ephemeral Diffie–Hellman key share; the server replies with its own key share, its certificate and a signature proving possession of the private key. Both sides then derive the same session keys. Because the Diffie–Hellman keys are ephemeral, TLS 1.3 always provides \textbf{forward secrecy}: stealing the server's private key later does not allow previously recorded traffic to be decrypted.
+
+The same PKI principles support other applications. \textbf{S/MIME} signs and encrypts email; \textbf{code signing} lets operating systems verify that software comes from a known publisher and has not been modified—which is why the stolen certificates used by Stuxnet were so damaging; and \textbf{mutual TLS (mTLS)} requires the client as well as the server to present a certificate, a pattern widely used for service-to-service authentication in modern architectures.
+
+\section{Key management: where cryptography actually fails}\label{sec:7.6}
+Modern algorithms are rarely broken mathematically; systems fail because keys are generated poorly, stored carelessly or never rotated. Typical failures include private keys committed to public source-code repositories, hard-coded credentials in applications, predictable random-number generators, and certificates that expire unnoticed and cause outages. \textbf{Key management} covers the entire lifecycle: secure generation with a cryptographically secure random source, protected storage, controlled distribution, regular rotation, revocation and, finally, destruction.
+
+High-value keys belong in dedicated hardware. A \textbf{hardware security module (HSM)} or a cloud key-management service performs cryptographic operations internally, so that the private key never leaves the device. Access to keys should follow least privilege and separation of duties, and every use should be logged. Looking ahead, organisations should also maintain an inventory of where each algorithm is used (\emph{crypto-agility}), so that vulnerable algorithms can be replaced—for example, as post-quantum algorithms standardised by NIST are adopted.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Hybrid encryption] Using asymmetric cryptography to protect a symmetric session key that encrypts the data.
+  \item[Collision resistance] The infeasibility of finding two different inputs with the same hash digest.
+  \item[Digital signature] A value computed with a private key that proves a message's integrity and origin.
+  \item[Certificate authority] A trusted entity that signs certificates binding public keys to identities.
+  \item[Forward secrecy] The property that compromise of long-term keys does not expose past session traffic.
+  \item[HSM] Hardware security module: a tamper-resistant device that stores keys and performs cryptographic operations.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Symmetric ciphers are fast but need a shared key; asymmetric algorithms solve key distribution; hybrid schemes combine both.
+  \item Hash functions provide integrity checks, not confidentiality; passwords require slow, salted password-hashing functions.
+  \item Digital signatures provide integrity and authenticity; non-repudiation also depends on key custody and legal context.
+  \item PKI binds keys to identities through certificate chains; lifecycle management and revocation are essential.
+  \item TLS 1.3 offers a fast handshake with forward secrecy, but most real failures arise from poor key management.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why do practical systems not encrypt large files directly with RSA?
+  \item A developer stores passwords as unsalted SHA-256 digests. Explain the risk and propose a better design.
+  \item Walk through how a browser verifies the certificate chain of a website.
+  \item Explain forward secrecy and why TLS 1.3 removed static RSA key exchange.
+\end{enumerate}
+
+% ============================================================
+% Chapter 8: Identity, Directory Services and Federated Single Sign-On
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Identity, Directory Services and Federated Single Sign-On}\label{ch:8}
+\chaptermeta{IAM · Authentication factors and MFA · FIDO2 · RBAC and ABAC · LDAP and Active Directory · Kerberos · SAML, OAuth 2.0 and OpenID Connect}{Level: Intermediate · Identity}{Study time: 9–11 hours}
+
+As organisations move to cloud services and remote work, the network perimeter loses its meaning and \textbf{identity becomes the new perimeter}. Most modern intrusions do not break encryption or exploit exotic vulnerabilities; they log in with stolen or abused credentials. Understanding how identities are created, verified, authorised and federated is therefore central to contemporary defence.
+
+This chapter builds on the cryptographic foundations of Chapter 7. It begins with the architecture of identity and access management and the factors used for authentication, including phishing-resistant FIDO2. It then compares access-control models, explains directory services and the Kerberos protocol that underpins Windows domains—together with the attacks against it—and concludes with the federation protocols SAML, OAuth 2.0 and OpenID Connect that enable single sign-on across organisational boundaries.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Distinguish identification, authentication, authorisation and accounting.
+  \item Compare authentication factors and explain why FIDO2 resists phishing.
+  \item Choose between RBAC, ABAC and rule-based access control for a given scenario.
+  \item Explain the Kerberos ticket flow and the principles behind Kerberoasting, pass-the-ticket and golden-ticket attacks.
+  \item Describe the roles of SAML, OAuth 2.0 and OpenID Connect and common federation weaknesses.
+\end{itemize}
+\end{outcomesbox}
+
+\section{IAM architecture: identification, authentication, authorisation and accounting}\label{sec:8.1}
+\textbf{Identity and access management (IAM)} is organised around four distinct steps, often abbreviated as \emph{IAAA}. \textbf{Identification} is the claim of an identity, such as typing a username. \textbf{Authentication} is the verification of that claim, for instance by checking a password or a security key. \textbf{Authorisation} determines what the authenticated subject is allowed to do. \textbf{Accounting} (or auditing) records what the subject actually did, which supports accountability and investigations. Confusing these steps leads to design errors—for example, treating a successfully authenticated user as automatically authorised for every resource.
+
+IAM also covers the \textbf{identity lifecycle}: accounts must be created when people join (\emph{joiner}), adjusted when they change roles (\emph{mover}) and disabled promptly when they leave (\emph{leaver}). Orphaned accounts of former employees and the gradual accumulation of permissions over a career—\emph{privilege creep}—are among the most common findings of security audits. Periodic \textbf{access reviews}, in which managers confirm that each permission is still needed, are the standard countermeasure.
+
+\section{Authentication factors, MFA and phishing-resistant FIDO2}\label{sec:8.2}
+Authentication factors are traditionally grouped into three categories: \textbf{something you know} (a password or PIN), \textbf{something you have} (a phone, smart card or security key) and \textbf{something you are} (a biometric trait such as a fingerprint). \textbf{Multi-factor authentication (MFA)} combines factors from \emph{different} categories, so that stealing one factor is not enough. Not all MFA is equally strong, however. One-time codes sent by SMS can be intercepted through SIM swapping; time-based codes from an authenticator app (TOTP, defined by the OATH standards) and push notifications can still be relayed by a real-time phishing proxy.
+
+\textbf{FIDO2/WebAuthn} changes this picture fundamentally. During registration, the authenticator—a security key or the secure hardware in a phone or laptop—creates a key pair specific to the website. At login, it signs a challenge that includes the website's origin. A fake site with a different domain therefore receives a signature that is useless for the real site, and there is no shared secret to steal. This is why FIDO2 is described as \textbf{phishing-resistant}, and why \emph{passkeys} based on it are replacing passwords in many services.
+
+\section{Access-control models: RBAC, ABAC and rule-based control}\label{sec:8.3}
+Once a subject is authenticated, the system must decide what it may do. In \textbf{role-based access control (RBAC)}, permissions are assigned to roles (for example, \emph{nurse}, \emph{accountant}, \emph{database administrator}) and users receive roles. RBAC is easy to understand and audit, but large organisations can suffer from \emph{role explosion} when every exception requires a new role. \textbf{Attribute-based access control (ABAC)} evaluates policies over attributes of the subject, the resource, the action and the environment—for instance, 'doctors may read records of patients in their own ward, during their shift, from a managed device'. ABAC is more expressive but harder to reason about and test.
+
+\textbf{Rule-based access control} applies global rules that do not depend on the individual user, such as firewall rules or 'no logins between midnight and 5 a.m.'. In practice, organisations combine the models: roles provide a stable baseline, attributes refine decisions in context, and global rules enforce organisation-wide constraints.
+
+\section{Directory services: X.500, LDAP and Active Directory}\label{sec:8.4}
+A \textbf{directory service} is a specialised, hierarchical database that stores information about users, groups, computers and other resources, and that is optimised for frequent reads. Its conceptual model comes from the \textbf{X.500} standards, and the \textbf{Lightweight Directory Access Protocol (LDAP)} is the common way to query and modify it. Every entry is identified by a \emph{distinguished name}, such as \texttt{CN=Maria Papadopoulou,OU=Finance,DC=example,DC=com}.
+
+Microsoft \textbf{Active Directory Domain Services (AD DS)} combines an LDAP directory with Kerberos authentication, DNS and Group Policy. It organises objects into \emph{domains}, \emph{trees} and \emph{forests}, and \emph{domain controllers} replicate the directory among themselves. Because AD controls authentication for almost every system in a Windows enterprise, compromising a domain administrator account usually means compromising the entire organisation. This is why AD security is organised around \textbf{tiered administration}: highly privileged accounts are used only on dedicated, hardened systems and never on ordinary workstations, where their credentials could be stolen.
+
+\section{Kerberos and the attacks against it}\label{sec:8.5}
+\textbf{Kerberos} allows users to authenticate once and then access many services without sending their password over the network. A trusted \textbf{Key Distribution Center (KDC)}—in AD, every domain controller—contains two logical services. At logon, the \textbf{Authentication Service (AS)} verifies the user and issues a \textbf{Ticket-Granting Ticket (TGT)}, encrypted with the key of the special \texttt{krbtgt} account. When the user wants to reach a service, the client presents the TGT to the \textbf{Ticket-Granting Service (TGS)}, which issues a \emph{service ticket} encrypted with the key of the account that runs the service. The service decrypts the ticket and grants access. Tickets have limited lifetimes, and the protocol relies on synchronised clocks.
+
+This design enables several well-known attacks. In \textbf{Kerberoasting}, any domain user requests service tickets for accounts with a \emph{service principal name (SPN)} and cracks them offline; weak service-account passwords fall quickly. In \textbf{pass-the-ticket}, stolen tickets are reused from another machine. A \textbf{golden ticket} is a forged TGT created with the stolen \texttt{krbtgt} key and grants unlimited access to the domain. Countermeasures include long random passwords or group-managed service accounts (gMSA), AES-only encryption, protecting domain controllers as Tier 0 assets, resetting the \texttt{krbtgt} password twice after a compromise, and monitoring for anomalous ticket requests.
+
+\section{Federated identity and single sign-on: SAML, OAuth 2.0 and OpenID Connect}\label{sec:8.6}
+\textbf{Federation} extends single sign-on beyond one organisation: a user authenticates with their own \textbf{identity provider (IdP)}, and many \textbf{service providers} accept that authentication. \textbf{SAML 2.0} exchanges digitally signed XML \emph{assertions} and is widely used for enterprise web applications. \textbf{OAuth 2.0} is, strictly speaking, not an authentication protocol but an \emph{authorisation} framework: it lets a user grant an application limited access to their resources (for example, 'read my calendar') by issuing an \emph{access token}, without sharing a password. \textbf{OpenID Connect (OIDC)} adds an identity layer on top of OAuth 2.0 through a signed \emph{ID token} that states who the user is.
+
+Federation concentrates trust, and therefore risk. If an attacker steals the IdP's token-signing key, they can forge access to every connected service—as happened in the \emph{Golden SAML} technique used during the SolarWinds campaign. Other common weaknesses include applications that fail to validate token signatures, audiences or expiry times; stolen session tokens replayed from another device; and \emph{consent phishing}, in which users are tricked into granting broad OAuth permissions to a malicious application. Defences include protecting signing keys in HSMs, strict token validation, short token lifetimes bound to devices, and administrator approval for high-risk OAuth consents.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Authentication vs. authorisation] Verifying who a subject is versus deciding what it may do.
+  \item[FIDO2 / passkey] Origin-bound public-key authentication that resists phishing and has no shared secret.
+  \item[ABAC] Access control based on attributes of subject, resource, action and environment.
+  \item[TGT] Kerberos ticket-granting ticket, used to obtain service tickets without re-entering credentials.
+  \item[Kerberoasting] Requesting service tickets and cracking service-account passwords offline.
+  \item[OIDC] OpenID Connect: an identity layer on OAuth 2.0 that issues signed ID tokens.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Identity is the modern perimeter; IAM separates identification, authentication, authorisation and accounting and manages the whole identity lifecycle.
+  \item MFA combines factors from different categories; FIDO2 is phishing-resistant because signatures are bound to the website's origin.
+  \item RBAC offers simplicity, ABAC offers context-aware precision, and rule-based controls enforce global constraints.
+  \item Active Directory and Kerberos are high-value targets; tiered administration and strong service-account hygiene are essential.
+  \item Federation protocols enable SSO but concentrate risk in signing keys and token validation.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why is an SMS one-time code weaker than a FIDO2 security key against a real-time phishing proxy?
+  \item Design an access policy for a hospital records system using RBAC, then refine it with ABAC attributes.
+  \item Explain why Kerberoasting is possible for any authenticated domain user, and how gMSAs mitigate it.
+  \item Why is OAuth 2.0 alone not sufficient for user authentication, and what does OIDC add?
+\end{enumerate}
+
+% ============================================================
+% Chapter 9: Secure Software Design and Engineering
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Secure Software Design and Engineering}\label{ch:9}
+\chaptermeta{Shift-left and DevSecOps · Injection · Cross-site scripting · CSRF and clickjacking · API security, SSRF and broken access control · Secrets and the software supply chain}{Level: Intermediate · Development}{Study time: 8–10 hours}
+
+Most vulnerabilities are not created by attackers; they are written, unintentionally, by developers. A single missing validation check can expose millions of records, and fixing a flaw after release costs far more than preventing it during design. Secure software engineering therefore aims to make security a normal property of everyday development work rather than a final inspection before release.
+
+This chapter first presents the \emph{shift-left} philosophy and the engineering principles that guide secure design. It then explains, for each of the most important web vulnerability classes—injection, cross-site scripting, cross-site request forgery, server-side request forgery and broken access control—why the flaw occurs and which defence addresses its root cause. It concludes with secrets management, logging and the protection of the software supply chain. The vulnerability classes discussed here correspond closely to the OWASP Top 10.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Explain shift-left security and how security activities are embedded in a DevSecOps pipeline.
+  \item Explain the root cause of injection and apply parameterised queries.
+  \item Distinguish stored, reflected and DOM-based XSS and apply context-aware output encoding and CSP.
+  \item Describe CSRF, clickjacking, SSRF and broken access control, with their defences.
+  \item Describe how SCA, SBOMs and SLSA protect the software supply chain.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Shift-left security, DevSecOps and core engineering principles}\label{sec:9.1}
+\textbf{Shift-left} means moving security activities earlier—'to the left'—in the development timeline. Security requirements are defined together with functional requirements; \textbf{threat modelling} (for example with the STRIDE method: spoofing, tampering, repudiation, information disclosure, denial of service, elevation of privilege) identifies risks while the design can still be changed cheaply; and automated checks run on every code change. \textbf{DevSecOps} integrates these checks into the continuous integration and delivery pipeline, so that a commit introducing a known-vulnerable library or a hard-coded password fails the build just like a failing unit test.
+
+Several engineering principles guide secure code. \textbf{Validate input} on the server side against an allow-list of what is expected, because every input from outside the trust boundary may be hostile. \textbf{Encode output} for the context in which it is used. Keep the \textbf{attack surface minimal} by removing unused features and endpoints. \textbf{Fail securely}, so that errors deny access and do not leak internal details. And prefer well-tested \textbf{framework security features} over home-made mechanisms, in the spirit of the economy-of-mechanism principle from Chapter 1.
+
+\section{SQL and NoSQL injection: parameterisation versus concatenation}\label{sec:9.2}
+\textbf{Injection} occurs when untrusted data are interpreted as part of a command. The classic case is SQL built by string concatenation, such as \texttt{''SELECT * FROM users WHERE name = ''' + input + '''''}. If an attacker enters \texttt{' OR '1'='1}, the condition becomes always true and the query returns every user; more elaborate payloads can read other tables, modify data or, in some configurations, execute operating-system commands. The root cause is the \emph{mixing of code and data} in a single string.
+
+The definitive defence is the \textbf{parameterised query} (prepared statement), in which the SQL structure is sent to the database separately from the values: \texttt{SELECT * FROM users WHERE name = ?}. The database then treats the input strictly as data, whatever characters it contains. Object-relational mappers provide the same protection when used correctly. Input validation and least-privilege database accounts are valuable additional layers, but escaping special characters by hand is error-prone and should not be relied upon. NoSQL databases are not immune: accepting JSON objects such as \texttt{\{''\$ne'': null\}} in a MongoDB query can bypass authentication in exactly the same way.
+
+\section{Cross-site scripting: stored, reflected and DOM-based}\label{sec:9.3}
+\textbf{Cross-site scripting (XSS)} is injection into the web browser. An attacker causes a website to deliver JavaScript that runs in the victim's browser with the full privileges of that site—reading session data, performing actions on the user's behalf or altering the page. In \textbf{stored XSS}, the malicious script is saved on the server (for example in a comment) and served to every visitor. In \textbf{reflected XSS}, the script is part of a crafted link and is immediately echoed back in the response. In \textbf{DOM-based XSS}, the vulnerability lies entirely in client-side code that writes untrusted data into the page, for instance through \texttt{innerHTML}.
+
+The primary defence is \textbf{context-aware output encoding}: data inserted into HTML, into an HTML attribute, into JavaScript or into a URL must each be encoded according to the rules of that context. Modern frameworks such as React and Angular encode by default, and developers should avoid bypasses such as \texttt{dangerouslySetInnerHTML} unless the content has been sanitised with a library like DOMPurify. A \textbf{Content Security Policy (CSP)} adds defence in depth by instructing the browser to execute only scripts from approved sources, while the \texttt{HttpOnly} cookie flag prevents scripts from reading session cookies.
+
+\section{Cross-site request forgery and clickjacking}\label{sec:9.4}
+In \textbf{cross-site request forgery (CSRF)}, a malicious website causes the victim's browser to send a request to another site where the victim is logged in. Because browsers automatically attach cookies, the target site sees an authenticated request—for example, to change the account's email address or transfer money—that the user never intended. Defences include \textbf{anti-CSRF tokens} (unpredictable values embedded in forms and verified by the server), the \textbf{SameSite} cookie attribute, which prevents cookies from being sent with most cross-site requests, and re-authentication for sensitive actions.
+
+\textbf{Clickjacking} embeds the target site invisibly inside a frame on an attacker's page and tricks the user into clicking buttons they cannot see. It is prevented by forbidding framing through the \texttt{frame-ancestors} directive of CSP or the older \texttt{X-Frame-Options} header.
+
+\section{API security: broken access control, SSRF and XXE}\label{sec:9.5}
+\textbf{Broken access control} is the most prevalent category in the OWASP Top 10. Its most common API form is the \emph{insecure direct object reference} (IDOR, also called BOLA): a request such as \texttt{GET /api/invoices/1043} returns the invoice even when it belongs to another customer, because the server checks \emph{that} the user is logged in but not \emph{whether} they own the object. Every request must be authorised on the server, for every object, following the complete-mediation principle. APIs should also enforce authentication with properly validated tokens, apply rate limits, and return only the fields the client needs.
+
+\textbf{Server-side request forgery (SSRF)} tricks a server into making requests on the attacker's behalf—for example, a 'fetch image from URL' feature that is pointed at internal services or at the cloud metadata endpoint \texttt{169.254.169.254}, which may reveal temporary credentials. Defences include allow-listing destinations, blocking internal address ranges and using the hardened metadata service (IMDSv2). \textbf{XML external entity (XXE)} attacks abuse XML parsers that resolve external references, allowing files to be read from the server; the remedy is to disable external entities and document type definitions in the parser configuration.
+
+\section{Secrets, logging and the software supply chain}\label{sec:9.6}
+\textbf{Secrets}—passwords, API keys, private keys—must never be written into source code or configuration files committed to version control, because repositories are copied, shared and sometimes made public. They belong in a dedicated secrets manager (such as HashiCorp Vault or a cloud key vault), are injected at runtime, and are rotated regularly; secret-scanning tools in the pipeline catch accidental commits. \textbf{Security logging} should record authentication events, access-control failures and administrative actions with enough context for investigation, but must never record passwords, tokens or unnecessary personal data.
+
+Modern applications consist mostly of third-party code: a typical project may depend on hundreds of open-source packages. \textbf{Software composition analysis (SCA)} identifies these dependencies and flags those with known vulnerabilities, as in the Log4Shell incident of 2021. A \textbf{software bill of materials (SBOM)}, in formats such as SPDX or CycloneDX, lists every component so that affected systems can be found within minutes when a new vulnerability is announced. The \textbf{SLSA} framework (\emph{Supply-chain Levels for Software Artifacts}) defines increasing levels of assurance for the build process—such as signed, reproducible builds with verifiable provenance—so that attacks like the SolarWinds build compromise become detectable.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Shift-left] Moving security activities earlier in the development lifecycle.
+  \item[Threat modelling] Systematic identification of threats to a design, e.g. with STRIDE.
+  \item[Parameterised query] A query whose structure is fixed and whose values are passed separately as data.
+  \item[XSS] Cross-site scripting: injection of script that runs in the victim's browser under the site's origin.
+  \item[IDOR / BOLA] Access to objects by identifier without checking that the requester is authorised for them.
+  \item[SBOM] Software bill of materials: an inventory of all components in a piece of software.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Security is cheapest when built in early: threat modelling and automated pipeline checks are the core of DevSecOps.
+  \item Injection arises from mixing code and data; parameterised queries remove the root cause.
+  \item XSS is prevented by context-aware output encoding, safe framework defaults and CSP.
+  \item CSRF, clickjacking, SSRF and XXE each have specific, well-established defences; broken access control requires server-side authorisation of every object.
+  \item Secrets managers, careful logging, SCA, SBOMs and SLSA protect the application and its supply chain.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Explain why escaping quotes is a weaker defence against SQL injection than parameterised queries.
+  \item Classify the following as stored, reflected or DOM-based XSS: a search page that prints the query from the URL using innerHTML.
+  \item Why does the SameSite cookie attribute mitigate CSRF but not XSS?
+  \item When Log4Shell was announced, how would an SBOM have helped an organisation respond?
+\end{enumerate}
+
+% ============================================================
+% Chapter 10: Security Testing: SAST, DAST, Vulnerability Assessment and Penetration Testing
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Security Testing: SAST, DAST, Vulnerability Assessment and Penetration Testing}\label{ch:10}
+\chaptermeta{Static analysis · Dynamic analysis · Vulnerability management lifecycle · Penetration testing methodology and ethics · CVSS and professional reporting}{Level: Intermediate–Advanced · Assurance}{Study time: 7–9 hours}
+
+Chapter 9 described how to build software securely; this chapter asks how we can \emph{verify} that it is secure. No single technique finds every weakness. Static analysis reads code without running it, dynamic analysis probes a running application from outside, vulnerability assessment surveys an entire environment for known weaknesses, and penetration testing demonstrates what a skilled adversary could actually achieve. Each answers a different question, at a different cost and stage.
+
+Because several of these activities use genuinely offensive techniques, the chapter gives equal weight to method and to ethics. It explains the legal foundations of authorised testing, the boundaries of post-exploitation activity and the handling of sensitive evidence, and it shows how findings should be scored and reported so that they lead to remediation rather than to an unread document.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Compare SAST, DAST, vulnerability assessment and penetration testing in terms of scope, strengths and limitations.
+  \item Describe the vulnerability management lifecycle and prioritise findings using CVSS and exploitation likelihood.
+  \item Explain penetration-testing models, phases and recognised methodologies.
+  \item State the legal and ethical requirements of authorised testing, including rules of engagement.
+  \item Write a finding that combines evidence, risk rating and actionable remediation.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Static application security testing (SAST)}\label{sec:10.1}
+\textbf{Static application security testing (SAST)} analyses source code, bytecode or binaries \emph{without executing them}. It is a white-box technique: the tool sees the entire code base. Modern SAST tools build a model of the program and perform \textbf{taint analysis}, tracking data from \emph{sources} (such as HTTP parameters) to dangerous \emph{sinks} (such as SQL execution or HTML output). If tainted data reach a sink without passing through a recognised \emph{sanitiser}, the tool reports a potential vulnerability together with the exact line of code.
+
+SAST's great advantage is timing: it can run in the developer's editor and on every commit, long before an application is deployed. Its main weakness is precision. Because it cannot observe runtime behaviour, it produces \textbf{false positives} (reported issues that are not exploitable) and misses flaws that depend on configuration or on business logic. Successful programmes therefore tune rules to their frameworks, triage results, and treat SAST as one layer among several.
+
+\section{Dynamic application security testing (DAST)}\label{sec:10.2}
+\textbf{Dynamic application security testing (DAST)} examines a \emph{running} application from the outside, as an attacker would, without access to the source code. A DAST scanner such as OWASP ZAP first \emph{crawls} the application to discover pages, parameters and API endpoints, then sends crafted inputs and analyses the responses for signs of vulnerability—an SQL error message, a reflected script, a missing security header. Because it observes real behaviour, a DAST finding is usually genuinely exploitable, and it can detect configuration and server problems that SAST cannot see.
+
+DAST also has limits. It can test only what it manages to reach, so pages behind complex authentication or multi-step workflows may be missed, and it cannot point to the responsible line of code. It runs late in the lifecycle, against a deployed test environment. \textbf{Interactive testing (IAST)} combines the two approaches by instrumenting the application while dynamic tests run, linking each observed issue to its location in the code.
+
+\section{The vulnerability management lifecycle}\label{sec:10.3}
+\textbf{Vulnerability assessment} systematically identifies known weaknesses—missing patches, insecure configurations, default credentials—across networks, hosts and applications, usually with automated scanners such as Nessus, OpenVAS or Nmap scripts. It is broad but shallow: it reports what \emph{may} be exploitable without attempting exploitation. Assessment is one stage of a continuous \textbf{vulnerability management lifecycle}: \emph{asset discovery} (you cannot protect what you do not know you have), \emph{scanning}, \emph{analysis and prioritisation}, \emph{remediation}, \emph{verification} that the fix works, and \emph{reporting} on trends.
+
+Prioritisation is where most programmes struggle, because scanners typically report thousands of findings. Severity alone is not enough. A sound approach combines the technical severity (CVSS), the likelihood of exploitation—for instance the \textbf{EPSS} score or inclusion in CISA's \emph{Known Exploited Vulnerabilities} catalogue—and the business importance and exposure of the affected asset. An internet-facing server with an actively exploited vulnerability deserves attention today, even if a 'critical' finding on an isolated test machine waits.
+
+\section{Penetration testing: models, phases, ethics and frameworks}\label{sec:10.4}
+A \textbf{penetration test} is an authorised, simulated attack that attempts to exploit vulnerabilities in order to demonstrate their real impact. Tests are classified by the knowledge given to the tester: \textbf{black-box} (no prior information, like an external attacker), \textbf{grey-box} (some information, such as a user account) and \textbf{white-box} (full documentation and source code, which gives the most thorough coverage in the available time). A typical engagement proceeds through \emph{pre-engagement} and scoping, \emph{reconnaissance}, \emph{scanning and enumeration}, \emph{exploitation}, \emph{post-exploitation}, and \emph{reporting}. Recognised methodologies such as PTES, the OWASP Web Security Testing Guide, OSSTMM and NIST SP 800-115 structure these phases and make results repeatable.
+
+Legality rests entirely on \textbf{authorisation}. Before any testing begins, the client must sign a contract and \textbf{rules of engagement} that define the scope (which systems, addresses and applications), the permitted techniques, the testing windows, emergency contacts and how sensitive data will be handled. Testing a system outside the agreed scope—even one that seems obviously related—is unauthorised access. Professional testers also avoid destructive actions and stop immediately if they encounter evidence of a real, ongoing compromise.
+
+\section{Post-exploitation boundaries and evidence handling}\label{sec:10.5}
+The \textbf{post-exploitation} phase demonstrates the business impact of a compromise: which data could be reached, whether privileges could be escalated, and how far the tester could move through the network. It is also the phase with the greatest ethical risk. The guiding rule is \textbf{minimum necessary action}: prove access, do not exploit it. A tester who reaches a customer database should record a screenshot of the table structure and a row count, not download the records. Any persistence mechanisms, accounts or files created during the test must be documented and removed afterwards.
+
+Evidence collected during a test—screenshots, captured credentials, extracts of sensitive data—is itself sensitive. It must be stored encrypted, shared only with authorised recipients, retained only as long as the contract requires, and then securely destroyed. Where personal data are involved, the processing must also comply with data-protection law such as the GDPR (Chapter 13).
+
+\section{Scoring and reporting: CVSS, proof and remediation}\label{sec:10.6}
+The \textbf{Common Vulnerability Scoring System (CVSS)} expresses the technical severity of a vulnerability as a score from 0 to 10. Its \emph{base metrics} describe how the vulnerability can be exploited (attack vector, attack complexity, privileges required, user interaction) and what its impact is on confidentiality, integrity and availability. The score is accompanied by a \emph{vector string}, such as \texttt{CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H} (score 9.8), which makes the reasoning transparent. CVSS measures severity, not risk; the organisational context must still be considered.
+
+A professional report serves two audiences. The \textbf{executive summary} explains, in non-technical language, the overall risk and the most important recommendations. Each \textbf{technical finding} contains a clear title, the affected assets, a description, step-by-step \emph{reproduction} evidence, the severity with its CVSS vector, the business impact, and a specific, actionable \textbf{remediation}—not 'improve security', but 'replace string concatenation in \texttt{search.php} line 42 with a parameterised query and deploy a WAF rule as an interim measure'. A re-test then verifies that the fixes are effective.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Comparison of testing approaches}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Approach} & \textbf{Access} & \textbf{When} & \textbf{Strength} & \textbf{Limitation} \\
+    \midrule
+    SAST & Source code (white box) & During development & Early, points to exact line & False positives, no runtime view \\
+    DAST & Running app (black box) & Test/staging & Confirms real behaviour & Limited coverage, late \\
+    Vulnerability assessment & Network, hosts, apps & Continuous & Broad coverage & No proof of exploitability \\
+    Penetration test & Agreed scope & Periodic / major change & Demonstrates real impact & Time-boxed, costly, point-in-time \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Taint analysis] Tracking untrusted data from sources to dangerous sinks in code.
+  \item[False positive] A reported issue that is not actually exploitable.
+  \item[EPSS] Exploit Prediction Scoring System: the estimated probability that a vulnerability will be exploited.
+  \item[Rules of engagement] The signed document defining scope, methods, timing and contacts for a test.
+  \item[Post-exploitation] Activities after initial access that demonstrate impact, bounded by minimum necessary action.
+  \item[CVSS vector] A string that records each metric used to compute a CVSS score.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item SAST, DAST, vulnerability assessment and penetration testing answer different questions and complement one another.
+  \item Vulnerability management is a continuous lifecycle; prioritisation must combine severity, exploitation likelihood and asset context.
+  \item Penetration tests follow recognised phases and methodologies and are legal only within signed scope and rules of engagement.
+  \item Post-exploitation should prove access with minimum necessary action, and test evidence must be protected like production data.
+  \item Good reports pair transparent CVSS scoring with reproducible evidence and specific remediation.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why might SAST report a vulnerability that DAST cannot confirm, and vice versa?
+  \item Two findings: CVSS 9.1 on an isolated lab server and CVSS 7.5 on an internet-facing server listed in CISA KEV. Which do you fix first, and why?
+  \item During a test you discover that a system just outside your scope is vulnerable. What should you do?
+  \item Rewrite the recommendation 'Fix the XSS issue' so that it becomes an actionable remediation.
+\end{enumerate}
+
+\part{Operations, Investigation and Governance}
+% ============================================================
+% Chapter 11: Detection, Threat Hunting, Incident Response and Lab Operations
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Detection, Threat Hunting, Incident Response and Lab Operations}\label{ch:11}
+\chaptermeta{IDS/IPS · Signatures and anomaly detection · Evasion · Threat hunting · YARA and Sigma · Isolated labs · NIST incident response · SOC operations}{Level: Intermediate–Advanced · Operations}{Study time: 10–12 hours}
+
+Prevention eventually fails. Chapter 1 introduced defence in depth precisely because every preventive control has gaps, and the preceding chapters have shown how skilled adversaries find them. This chapter therefore concerns what happens next: how an organisation \emph{detects} malicious activity, \emph{searches} proactively for threats that evaded its alerts, and \emph{responds} in a disciplined way that limits damage and preserves evidence.
+
+We begin with intrusion detection and prevention systems, the two main inspection paradigms and the techniques attackers use to evade them. We then turn to proactive threat hunting, the YARA and Sigma rule languages, and the design of isolated laboratories in which malware can be studied safely. The chapter concludes with the incident response lifecycle defined by NIST and with the organisation of a Security Operations Centre (SOC).
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Compare network- and host-based IDS/IPS and the signature and anomaly inspection paradigms.
+  \item Explain common IDS evasion techniques and the role of traffic normalisation.
+  \item Plan a hypothesis-driven threat hunt using endpoint and memory telemetry.
+  \item Write basic YARA and Sigma rules and manage detections as code.
+  \item Apply the NIST incident response lifecycle and describe SOC tiers and the SIEM pipeline.
+\end{itemize}
+\end{outcomesbox}
+
+\section{IDS and IPS architectures and inspection paradigms}\label{sec:11.1}
+An \textbf{intrusion detection system (IDS)} monitors activity and raises alerts; an \textbf{intrusion prevention system (IPS)} sits in the traffic path and can block malicious activity automatically. A \textbf{network IDS (NIDS)}, such as Suricata, Snort or Zeek, analyses copies of network traffic from a switch mirror port or a network tap and sees communication between many hosts. A \textbf{host IDS (HIDS)}, such as Wazuh or OSSEC, runs on individual systems and observes file changes, logs and processes—including activity inside encrypted connections that a network sensor cannot read. The two views are complementary.
+
+Detection logic follows two paradigms. \textbf{Signature-based} detection matches known patterns, such as a specific exploit string; it is precise and easy to explain but blind to new attacks. \textbf{Anomaly- or behaviour-based} detection models what is normal and flags deviations, such as a workstation suddenly transferring gigabytes at night; it can find unknown attacks but generates more false positives and requires a careful baseline. Mature programmes combine both and tune them continuously, because an alert that analysts learn to ignore is worse than no alert at all.
+
+\section{Evasion techniques and automated mitigation}\label{sec:11.2}
+Attackers try to make the IDS see something different from what the target actually receives. \textbf{Fragmentation} splits a malicious payload across many small packets or overlapping fragments; \textbf{encoding} and obfuscation disguise known strings; manipulating timing or \emph{TTL} values can cause the sensor and the destination to reassemble a stream differently; and, increasingly, attacks are simply hidden inside \textbf{encrypted} TLS traffic. Countermeasures include \textbf{traffic normalisation}, which reassembles streams in the same way as the end host, TLS inspection at controlled points where it is lawful and proportionate, and a greater reliance on host-based telemetry and metadata such as connection timing.
+
+When an IPS or an automated playbook responds, it can \textbf{drop} the offending packets, \textbf{reset} the TCP connection, \textbf{block} the source address for a period, \textbf{reconfigure} a firewall, or \textbf{isolate} an endpoint from the network. Automation shortens response time dramatically, but a wrongly tuned rule can also cut off legitimate business activity. Automatic blocking is therefore reserved for high-confidence detections, while lower-confidence alerts are routed to analysts.
+
+\section{Proactive threat hunting and endpoint telemetry}\label{sec:11.3}
+\textbf{Threat hunting} starts from the assumption that an adversary may already be present without having triggered any alert. A hunt is driven by a \textbf{hypothesis}, typically derived from threat intelligence or from ATT\&CK—for example, 'an attacker is using scheduled tasks for persistence on our servers'. The hunter then queries the available telemetry, investigates anomalies and reaches a conclusion. Whatever the outcome, a good hunt ends by turning its logic into an automated detection, so that the same behaviour will be caught in future.
+
+Hunting depends on rich \textbf{endpoint telemetry}. Tools such as Microsoft Sysmon record process creation with full command lines, network connections, driver loads and registry changes; EDR platforms collect similar data at scale; and on Linux, \texttt{auditd} and eBPF-based sensors provide equivalent visibility. \textbf{Memory analysis} with frameworks such as Volatility can reveal injected code, hidden processes and decrypted malware configurations that never touched the disk—an essential capability against the fileless techniques described in Chapter 4.
+
+\section{YARA, Sigma and detection-as-code}\label{sec:11.4}
+\textbf{YARA} is a pattern-matching language for classifying files and memory. A rule has three parts: \emph{meta} (descriptive information), \emph{strings} (text, hexadecimal or regular-expression patterns) and a \emph{condition} that combines them, for example \texttt{uint16(0) == 0x5A4D and 2 of (\$s*)}, meaning 'a Windows executable containing at least two of the listed strings'. Good rules target characteristics that the malware author cannot easily change—unique code sequences, configuration structures—rather than a single string, and they are tested against a corpus of legitimate files to avoid false positives.
+
+Whereas YARA inspects files, \textbf{Sigma} describes suspicious patterns in \emph{log events} in a vendor-neutral format that can be converted into queries for different SIEM platforms. \textbf{Detection-as-code} applies software-engineering discipline to both: rules are stored in version control, peer-reviewed, tested automatically against sample data, mapped to ATT\&CK techniques and deployed through a pipeline. \textbf{SOAR} (security orchestration, automation and response) platforms then execute playbooks when a detection fires—enriching the alert, opening a ticket and, if confidence is high, isolating the host.
+
+\section{Designing isolated analysis laboratories}\label{sec:11.5}
+Detection engineering and malware analysis require a place where hostile code can run without endangering real systems. A safe laboratory relies on \textbf{virtualisation}: analysis machines run as virtual machines on a dedicated host, with \textbf{snapshots} that allow them to be restored to a clean state after every experiment. Networking is set to \emph{host-only} or to an internal network with no route to the internet or the production environment; where network behaviour must be observed, simulated services such as INetSim or FakeNet answer the malware's requests.
+
+Isolation must also be procedural. Shared folders and clipboard synchronisation between host and guest should be disabled, samples should be stored in password-protected archives and clearly labelled, and analysts should remember that some malware detects virtual machines and changes its behaviour. These precautions are an application of the same containment thinking that governs incident response.
+
+\section{The incident response lifecycle (NIST SP 800-61)}\label{sec:11.6}
+NIST Special Publication 800-61 describes incident response as a cycle of four phases. \textbf{Preparation} comes first and determines everything else: an approved plan, defined roles, contact lists, communication templates, tools, logging and regular exercises. \textbf{Detection and analysis} confirms that an incident has occurred, determines its scope and severity, and documents every step. \textbf{Containment, eradication and recovery} limits the damage—short-term by isolating systems and disabling compromised accounts, long-term by rebuilding them—removes the attacker's footholds and restores normal operation from trusted sources. \textbf{Post-incident activity} holds a blameless lessons-learned review within a few weeks and feeds improvements back into preparation.
+
+Two tensions run through every incident. The first is between \textbf{speed and evidence}: switching off a machine stops the attack but destroys the contents of memory, so evidence should be captured before disruptive actions whenever possible (Chapter 12). The second is between \textbf{containment and intelligence}: removing the attacker too early, before their full footprint is known, may simply alert them and cause them to use another backdoor. The revised guidance (Rev. 3, 2025) aligns these activities with the functions of the NIST Cybersecurity Framework 2.0.
+
+\begin{notebox}{Legal and regulatory clocks}
+Many incidents trigger mandatory notifications—for example, 72 hours to the supervisory authority under the GDPR for personal-data breaches, and an early warning within 24 hours under NIS2 for significant incidents (Chapter 13). The response plan must identify who decides and who notifies.
+\end{notebox}
+
+\section{SOC operations: tiers, the SIEM pipeline and use-case engineering}\label{sec:11.7}
+A \textbf{Security Operations Centre (SOC)} is the team and infrastructure that monitors an organisation continuously. Work is traditionally divided into tiers: \textbf{Tier 1} analysts triage incoming alerts, \textbf{Tier 2} investigates confirmed incidents in depth, and \textbf{Tier 3} specialists hunt for threats, analyse malware and engineer detections. The central tool is the \textbf{SIEM} (security information and event management) platform, whose pipeline \emph{collects} logs from many sources, \emph{normalises} them into a common schema, \emph{enriches} them with context such as asset owners and threat intelligence, \emph{correlates} events into alerts and \emph{stores} them for investigation and compliance.
+
+A SIEM is only as good as its \textbf{use cases}—the specific threats it is configured to detect. Each use case should state the threat it addresses (ideally as an ATT\&CK technique), the data sources it requires, the detection logic, the expected false-positive rate and the response procedure. SOC performance is commonly measured through the \textbf{mean time to detect (MTTD)} and the \textbf{mean time to respond (MTTR)}, together with the proportion of alerts that turn out to be actionable—a key indicator of analyst workload and burnout.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[NIDS / HIDS] Network-based and host-based intrusion detection systems.
+  \item[Traffic normalisation] Reassembling traffic as the destination would, to defeat evasion.
+  \item[Threat hunting] Hypothesis-driven, proactive search for adversaries that evaded detection.
+  \item[YARA / Sigma] Rule languages for matching patterns in files (YARA) and in log events (Sigma).
+  \item[Containment] Incident-response actions that limit the spread and impact of an attack.
+  \item[SIEM] Platform that collects, normalises, correlates and stores security events.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Network and host sensors provide complementary visibility; signature and anomaly detection each have strengths and weaknesses.
+  \item Attackers evade inspection through fragmentation, encoding and encryption; normalisation and host telemetry counter them.
+  \item Threat hunting is hypothesis-driven and should end by creating new automated detections.
+  \item YARA and Sigma rules, managed as code and connected to SOAR, turn knowledge into repeatable detection and response.
+  \item Incident response follows the NIST lifecycle, balancing speed with evidence preservation, and the SOC operationalises it through tiers, a SIEM and measurable use cases.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why can a host-based sensor detect an attack inside HTTPS traffic that a network IDS misses?
+  \item Formulate a hunting hypothesis for credential dumping from LSASS and list the telemetry you would need.
+  \item Why should a YARA rule not rely on a single string such as a C2 domain name?
+  \item During an incident, a manager wants to shut down the affected server immediately. Discuss the trade-offs.
+\end{enumerate}
+
+% ============================================================
+% Chapter 12: Malware Analysis, Digital Forensics and OSINT Reconnaissance
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Malware Analysis, Digital Forensics and OSINT Reconnaissance}\label{ch:12}
+\chaptermeta{Static triage · Dynamic and behavioural analysis · Passive and active reconnaissance · DNS enumeration · OSINT ethics · Order of volatility · Timelines and carving}{Level: Advanced · Investigation}{Study time: 10–12 hours}
+
+When an incident occurs, three investigative questions arise. What does the malicious code do? What can the organisation's exposure reveal to an adversary? And what exactly happened on the affected systems? This chapter introduces the disciplines that answer them: malware analysis, open-source intelligence (OSINT) reconnaissance and digital forensics.
+
+The three disciplines share a common ethic. Analysts work in controlled environments, collect information lawfully and handle evidence in a way that preserves its integrity and admissibility. The chapter moves from static and dynamic analysis of a suspicious file, through the mapping of an organisation's external attack surface, to the principles of forensic acquisition and the reconstruction of events from filesystem artefacts.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Perform static triage of a suspicious file using hashes, headers, entropy and strings.
+  \item Design a safe dynamic analysis and interpret behavioural artefacts.
+  \item Distinguish passive from active reconnaissance and map an organisation's attack surface through DNS and search-engine techniques.
+  \item Apply legal, ethical and operational-security rules to OSINT work.
+  \item Apply the order of volatility and chain of custody, and build a timeline from filesystem artefacts.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Static triage: hashes, headers, entropy, strings and packers}\label{sec:12.1}
+\textbf{Static analysis} examines a file without executing it and is always the first, safest step. The analyst begins by computing \textbf{cryptographic hashes} (SHA-256) to identify the sample uniquely and to check threat-intelligence databases for previous reports. Next, the file \textbf{header} reveals its true type regardless of its extension: Windows executables begin with the bytes \texttt{MZ}, and their \emph{Portable Executable (PE)} structure lists compilation timestamps, sections and imported functions. Imports such as \texttt{VirtualAllocEx} and \texttt{CreateRemoteThread} hint at process injection; \texttt{CryptEncrypt} together with file-enumeration functions may suggest ransomware.
+
+\textbf{Entropy} measures randomness on a scale from 0 to 8 bits per byte. Ordinary code has moderate entropy, whereas sections with entropy close to 8 are likely compressed or encrypted—a typical sign of a \textbf{packer}, a tool that wraps the real payload so that it is revealed only in memory. Extracting readable \textbf{strings} can expose URLs, IP addresses, registry paths or error messages, although malware authors often obfuscate them. When deeper understanding is needed, \textbf{disassemblers and decompilers} such as Ghidra or IDA translate machine code into assembly or pseudo-C, allowing the analyst to follow the program's logic.
+
+\section{Dynamic and behavioural analysis}\label{sec:12.2}
+\textbf{Dynamic analysis} executes the sample in the isolated laboratory described in Chapter 11 and observes what it does. Automated \textbf{sandboxes} such as CAPE or commercial equivalents run the file, record its activity and produce a report within minutes. Manual analysis gives more control: the analyst takes a snapshot, starts monitoring tools, executes the sample, interacts with it if necessary and then compares the system state before and after execution.
+
+\textbf{Behavioural auditing} focuses on the traces the sample leaves. On the filesystem, analysts look for dropped files and modified documents; in the registry, for new \emph{Run} keys or services; in the process tree, for child processes and injection into legitimate processes; and on the network, for DNS queries and connections to command-and-control servers. Tools such as Process Monitor, Process Explorer, Regshot and Wireshark capture these events, while API monitoring reveals which system functions the malware calls. Analysts must remember that sophisticated malware may detect the sandbox—by checking for virtual hardware, short uptimes or the absence of user activity—and remain dormant, so a 'clean' sandbox report is never proof of innocence.
+
+\section{Reconnaissance: passive and active techniques, dorking and DNS}\label{sec:12.3}
+Reconnaissance is the first phase of the Kill Chain, and defenders perform it too, in order to see their organisation as an attacker would. \textbf{Passive reconnaissance} gathers information without interacting directly with the target's systems: public websites, social media, job advertisements that reveal technologies in use, WHOIS records, certificate-transparency logs and internet-wide scan databases such as Shodan or Censys. \textbf{Active reconnaissance} interacts with the target—port scanning, banner grabbing, directory brute-forcing—and is therefore detectable and legally permissible only with authorisation.
+
+Search engines are powerful reconnaissance tools. \textbf{Google dorking} uses advanced operators such as \texttt{site:}, \texttt{filetype:} and \texttt{intitle:} to find exposed documents, login pages, configuration files or directory listings that were never meant to be public. \textbf{DNS enumeration} maps an organisation's internet presence: querying record types (A, MX, TXT, NS), discovering subdomains through certificate-transparency logs and passive-DNS databases, and testing whether misconfigured name servers allow \emph{zone transfers} that reveal every record. Forgotten subdomains that still point to decommissioned cloud resources can even be \emph{taken over} by an attacker—a risk that regular attack-surface reviews are designed to catch.
+
+\section{OSINT ethics, operational security and actionable reporting}\label{sec:12.4}
+That information is publicly accessible does not mean it may be collected and used without limits. OSINT work must respect the law—data-protection rules such as the GDPR apply to personal data even when they are public—as well as the terms of service of platforms and the agreed scope of the engagement. Analysts should collect only what is necessary for the stated purpose and never attempt to access accounts or bypass access controls, which would turn reconnaissance into intrusion.
+
+\textbf{Operational security (OPSEC)} protects the investigation itself: analysts use dedicated research environments and accounts, avoid revealing their identity or organisation to the target, and document their sources with timestamps and archived copies so that findings are reproducible. The value of reconnaissance lies in what follows. An \textbf{attack-surface report} should translate findings into prioritised, owned remediation tickets—'decommission the dangling subdomain \texttt{old-shop.example.com}', 'remove the exposed backup file'—rather than presenting an undifferentiated list of discoveries.
+
+\section{Forensic principles, the order of volatility and chain of custody}\label{sec:12.5}
+\textbf{Digital forensics} is the scientific collection, preservation, analysis and presentation of digital evidence in a manner that can withstand legal scrutiny. Its foundational principle, derived from Locard's exchange principle, is that every action leaves a trace—including the actions of the investigator. Evidence must therefore be acquired in a way that changes it as little as possible, and every step must be documented. Disks are copied bit by bit into forensic images using \textbf{write blockers}, and each image is verified by comparing its hash with that of the original.
+
+Because some data disappear faster than others, evidence is collected according to the \textbf{order of volatility} (RFC 3227): first CPU registers and cache, then memory (RAM), including running processes and network connections; then temporary files and swap space; then disk contents; and finally remote logs and archival media. Pulling the power cable first would destroy the most volatile—and often the most revealing—evidence. Every item is recorded in a \textbf{chain-of-custody} log stating who collected it, when, how, where it was stored and to whom it was transferred. A gap in this chain can render otherwise valid evidence inadmissible.
+
+\section{Filesystem artefacts, carving and timelines}\label{sec:12.6}
+Filesystems record far more than file contents. On Windows, the NTFS \textbf{Master File Table (MFT)} stores metadata for every file, including four timestamps—creation, modification, access and MFT-entry change—in two separate attributes, which helps investigators detect \emph{timestomping}, the deliberate falsification of timestamps. Other valuable artefacts include the \textbf{\$UsnJrnl} change journal, \textbf{Prefetch} files that prove a program was executed, \textbf{LNK} shortcut files and \textbf{Jump Lists} that reveal recently opened documents, \textbf{ShellBags} that record folder access, and the Windows event logs. Deleting a file usually removes only its directory entry, so its contents may remain on disk until the space is reused.
+
+\textbf{File carving} recovers such deleted data by searching unallocated space for known file signatures—for instance, the header and footer of a JPEG image—without relying on filesystem metadata. Finally, investigators combine timestamps from all sources into a single \textbf{super-timeline}, using tools such as Plaso or Autopsy. A timeline turns thousands of isolated artefacts into a narrative: the phishing email arrived at 09:12, the attachment was opened at 09:14, PowerShell ran at 09:14:07, a scheduled task was created at 09:15, and data were compressed and sent out at 02:30 the following night.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Entropy] A measure of randomness; high values suggest compressed or encrypted (packed) content.
+  \item[Sandbox] An isolated environment that executes samples and records their behaviour.
+  \item[Passive reconnaissance] Information gathering without direct interaction with the target's systems.
+  \item[Order of volatility] Collecting evidence from the most to the least short-lived source.
+  \item[Chain of custody] A documented record of who handled evidence, when and how.
+  \item[Super-timeline] A unified chronology of events built from many artefact sources.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Static triage—hashes, headers, imports, entropy and strings—is the safe first step and guides deeper analysis.
+  \item Dynamic analysis reveals behaviour, but evasive malware means that a clean sandbox result proves nothing.
+  \item Passive reconnaissance, dorking and DNS enumeration let defenders see their exposure as attackers do.
+  \item OSINT must be lawful, proportionate and OPSEC-aware, and its results must become owned remediation actions.
+  \item Forensics follows the order of volatility and chain of custody, and timelines turn artefacts into a reliable narrative.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item A PE file has a section with entropy 7.9 and very few imports. What do you conclude, and what is your next step?
+  \item Why is a 'no malicious activity' sandbox verdict insufficient to clear a suspicious file?
+  \item Classify the following as passive or active: certificate-transparency search, Nmap scan, Shodan lookup, zone-transfer attempt.
+  \item Why should memory be captured before a disk image during live response?
+\end{enumerate}
+
+% ============================================================
+% Chapter 13: Cyber Resilience, Governance and Future Trends
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Cyber Resilience, Governance and Future Trends}\label{ch:13}
+\chaptermeta{Backups and recovery · BCP, RPO and RTO · Risk management · NIST CSF 2.0, ISO/IEC 27001, CIS · GDPR and NIS2 · Metrics · OT security · Zero Trust and cloud}{Level: Advanced · Strategy and governance}{Study time: 10–12 hours}
+
+The final chapter returns to the question raised in Chapter 1: \emph{can the organisation continue to operate, and recover, when things go wrong?} Technical controls are necessary but not sufficient. Resilience also depends on backups that work when needed, on plans that have been rehearsed, on decisions about risk that are taken consciously by accountable people, and on compliance with a growing body of law.
+
+The chapter first covers resilience engineering, backup architectures and business continuity. It then turns to governance: risk management in practice, the major frameworks and regulations, and the metrics that tell leadership whether security is improving. It concludes by looking at environments and trends that will shape the coming years—operational technology and critical infrastructure, Zero Trust architecture, and cloud and supply-chain security.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Design a backup strategy that survives ransomware and define RPO and RTO for critical services.
+  \item Build a risk register and choose appropriate treatment options.
+  \item Compare NIST CSF 2.0, ISO/IEC 27001 and the CIS Controls, and summarise the obligations of GDPR and NIS2.
+  \item Distinguish meaningful security metrics from vanity metrics.
+  \item Explain the particular constraints of OT security and the principles of Zero Trust and cloud shared responsibility.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Resilience engineering and backup architectures}\label{sec:13.1}
+\textbf{Resilience engineering} accepts that some attacks and failures will succeed and designs systems to degrade gracefully rather than collapse. Its tools include redundancy without shared single points of failure, the ability to isolate damaged components, and pre-planned modes of reduced operation—for example, a hospital that can continue admitting patients on paper when its electronic system is unavailable.
+
+Backups are the foundation of recovery, and modern ransomware deliberately targets them. The classic \textbf{3-2-1 rule}—three copies of the data, on two different types of media, one of them off-site—has therefore been extended to \textbf{3-2-1-1-0}: at least one copy should be \textbf{offline or immutable} (write-once storage or object lock that even an administrator cannot delete during the retention period), and restores should be tested so that there are \textbf{zero} unverified errors. Backup systems need their own separate credentials and MFA, because an attacker with domain-administrator rights will otherwise simply delete them before launching the encryption.
+
+\section{Business continuity and disaster recovery: RPO and RTO}\label{sec:13.2}
+\textbf{Business continuity planning (BCP)} ensures that critical business functions continue during a disruption, whereas \textbf{disaster recovery (DR)} focuses on restoring the IT systems that support them. Both start with a \textbf{business impact analysis}, which identifies critical processes and the consequences of their interruption over time. Two parameters then guide technical design. The \textbf{recovery point objective (RPO)} is the maximum acceptable amount of data loss, measured in time: an RPO of one hour requires backups or replication at least hourly. The \textbf{recovery time objective (RTO)} is the maximum acceptable time to restore the service. Shorter objectives are more expensive, so they should be justified by business impact.
+
+Plans are only credible if they are exercised. \textbf{DR playbooks} describe step by step how to restore each critical system, in what order (identity services and networking usually come first) and who is responsible. They are validated through tabletop exercises, partial restore tests and full failover drills, and the measured recovery times are compared with the RTO. A plan that has never been tested should be assumed not to work.
+
+\section{Enterprise risk management in practice}\label{sec:13.3}
+Chapter 1 defined risk; governance turns that definition into a management process. A \textbf{risk register} records each risk with a clear statement (\emph{threat} exploiting \emph{vulnerability} causing \emph{impact} on \emph{asset}), an owner, the existing controls, ratings of likelihood and impact, the chosen treatment and a review date. A \textbf{risk matrix}—commonly five by five—helps to visualise and compare risks, although qualitative scales should be defined carefully so that 'likely' means the same thing to everyone. Quantitative methods such as FAIR express risk in monetary terms and can support investment decisions.
+
+Every risk must receive an explicit \textbf{treatment decision}: \emph{mitigate} with additional controls, \emph{transfer} through insurance or contracts, \emph{avoid} by discontinuing the activity, or \emph{accept} it formally. Acceptance is legitimate only when it is made by someone with the authority to bear the consequences, is documented, and is reviewed periodically. Technical scores such as CVSS (Chapter 10) are inputs to this process, not substitutes for it.
+
+\section{Frameworks and regulation: NIST CSF 2.0, ISO/IEC 27001, CIS, GDPR and NIS2}\label{sec:13.4}
+Frameworks give structure to a security programme. The \textbf{NIST Cybersecurity Framework 2.0} (2024) organises outcomes into six functions: \emph{Govern}, \emph{Identify}, \emph{Protect}, \emph{Detect}, \emph{Respond} and \emph{Recover}; the new Govern function emphasises that cybersecurity is a leadership responsibility. \textbf{ISO/IEC 27001} specifies the requirements of an \emph{information security management system} (ISMS)—a cycle of risk assessment, control selection, monitoring and improvement—and is the basis for independent certification; its Annex A lists 93 reference controls. The \textbf{CIS Critical Security Controls} are a prioritised set of concrete technical safeguards, grouped into implementation groups for organisations of different maturity.
+
+Regulation makes certain practices mandatory. The EU \textbf{General Data Protection Regulation (GDPR)} requires appropriate security for personal data, data protection by design and by default, and notification of personal-data breaches to the supervisory authority within 72 hours. The \textbf{NIS2 Directive} extends cybersecurity obligations to a wide range of essential and important entities—energy, health, transport, digital infrastructure and more—requiring risk-management measures, supply-chain security, incident reporting (an early warning within 24 hours) and personal accountability of management bodies. In the United States, \textbf{HIPAA} imposes comparable safeguards on health information.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Frameworks and regulations at a glance}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Instrument} & \textbf{Nature} & \textbf{Primary focus} & \textbf{Typical use} \\
+    \midrule
+    NIST CSF 2.0 & Voluntary framework & Outcomes across six functions & Programme structure, maturity profiling \\
+    ISO/IEC 27001 & Certifiable standard & Management system (ISMS) & Certification, customer assurance \\
+    CIS Controls v8 & Prioritised control set & Concrete technical safeguards & Implementation roadmap \\
+    GDPR & EU regulation (binding) & Personal-data protection & Legal compliance, breach notification \\
+    NIS2 & EU directive (binding) & Security of essential/important entities & Risk management, incident reporting \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{Security metrics: signal versus vanity}\label{sec:13.5}
+Leadership needs evidence that security investment reduces risk. Many commonly reported numbers are \textbf{vanity metrics}: 'millions of attacks blocked' mostly counts automated internet noise, and 'number of tools deployed' says nothing about their effectiveness. \textbf{Meaningful metrics} are tied to decisions and outcomes: the percentage of critical assets covered by EDR and logging; the time to patch internet-facing vulnerabilities that are known to be exploited; MTTD and MTTR (Chapter 11); the phishing report rate (Chapter 5); the proportion of privileged accounts protected by phishing-resistant MFA; and the success rate and duration of backup restore tests compared with the RTO.
+
+Good metrics have a defined data source, a target and a trend over time, and each one should suggest an action if it moves in the wrong direction. Reporting a small number of such indicators consistently is far more useful to a board than a dashboard of hundreds of unexplained figures.
+
+\section{Critical infrastructure and operational technology}\label{sec:13.6}
+\textbf{Operational technology (OT)}—industrial control systems (ICS), SCADA systems and programmable logic controllers that run power grids, water treatment, manufacturing and medical devices—has priorities different from office IT. Safety and availability come first, systems may run for twenty years or more, and many industrial protocols such as Modbus were designed without authentication. Patching may require stopping a production line, and an aggressive network scan can crash a fragile controller. As Stuxnet and later attacks on energy grids showed, consequences can be physical.
+
+OT security therefore relies heavily on architecture. The \textbf{Purdue model} divides the environment into levels, from physical processes (level 0) and controllers (level 1) up to enterprise IT (levels 4–5). The standard \textbf{ISA/IEC 62443} groups assets into \emph{zones} and permits communication only through controlled \emph{conduits}, with an industrial demilitarised zone between IT and OT. Passive network monitoring designed for industrial protocols provides visibility without disturbing sensitive devices, while strict control of remote vendor access closes one of the most frequently abused entry points.
+
+\section{Zero Trust, cloud security and emerging threats}\label{sec:13.7}
+\textbf{Zero Trust Architecture} (NIST SP 800-207) abandons the idea that anything inside the network perimeter is trustworthy. Every access request is evaluated explicitly, using the identity of the user, the health of the device and the sensitivity of the resource; access is granted with least privilege, for a limited session; and the design assumes that a breach has already occurred. A \emph{policy decision point} evaluates each request, and a \emph{policy enforcement point} in front of each resource applies the decision. Zero Trust is a journey rather than a product: organisations typically progress from strong identity and MFA, through device compliance and micro-segmentation, to continuous, risk-adaptive access decisions.
+
+In the \textbf{cloud}, security follows a \textbf{shared responsibility model}: the provider secures the underlying infrastructure, while the customer remains responsible for identities, configuration and data. Most cloud breaches result from customer-side misconfigurations—publicly readable storage buckets, excessive permissions, exposed keys—which \emph{cloud security posture management} tools are designed to detect. Containers add their own requirements: minimal, scanned images, non-root execution, and default-deny Kubernetes network policies. Looking ahead, defenders must prepare for the transition to \textbf{post-quantum cryptography}, for AI-assisted phishing and deepfake-based fraud, and for continued attacks on the software supply chain. The principles of this book—least privilege, defence in depth, verification and resilience—remain the most reliable guide through these changes.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[3-2-1-1-0] Backup rule: 3 copies, 2 media, 1 off-site, 1 offline/immutable, 0 unverified restore errors.
+  \item[RPO / RTO] Maximum acceptable data loss (RPO) and maximum acceptable downtime (RTO).
+  \item[Risk register] A structured record of risks, owners, controls, ratings and treatment decisions.
+  \item[ISMS] Information security management system, as specified by ISO/IEC 27001.
+  \item[Purdue model] Layered reference architecture separating industrial control levels from enterprise IT.
+  \item[Shared responsibility] Division of security duties between a cloud provider and its customer.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Resilience assumes failure: immutable, tested backups with separate credentials are the core of ransomware recovery.
+  \item BCP and DR are driven by business impact, expressed through RPO and RTO, and are credible only when exercised.
+  \item Risk management records, rates and explicitly treats each risk, with acceptance decided by accountable owners.
+  \item NIST CSF 2.0, ISO/IEC 27001 and CIS Controls structure security programmes; GDPR and NIS2 make key practices mandatory.
+  \item OT security, Zero Trust and cloud shared responsibility extend the book's core principles to new environments.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why does the 3-2-1 rule alone not guarantee recovery from ransomware? What do the additional '1' and '0' add?
+  \item An online shop can tolerate losing 15 minutes of orders and being offline for 2 hours. Translate this into RPO/RTO and propose a technical design.
+  \item Who should be allowed to accept a high residual risk, and why must acceptance be documented?
+  \item Explain why active vulnerability scanning common in IT may be inappropriate in an OT environment.
+\end{enumerate}
+
+\end{document}

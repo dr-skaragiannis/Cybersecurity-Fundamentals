@@ -1,0 +1,47 @@
+% !TEX program = xelatex
+% Cybersecurity Fundamentals — English edition
+\documentclass[11pt,openany]{book}
+\input{preamble}
+\setdefaultlanguage[variant=british]{english}
+\setotherlanguage{greek}
+
+\title{Cybersecurity Fundamentals}
+\author{Dr. S. Karagiannis}
+
+\begin{document}
+\frontmatter
+\begin{titlepage}
+  \centering\sffamily
+  \vspace*{3cm}
+  {\color{accent}\rule{\linewidth}{1.2pt}}\par\vspace{1cm}
+  {\Huge\bfseries Cybersecurity Fundamentals\par}
+  \vspace{0.6cm}
+  {\Large Principles, Architectures and Defensive Operations\par}
+  \vspace{1cm}
+  {\color{accent}\rule{\linewidth}{1.2pt}}\par
+  \vfill
+  {\large Dr. S. Karagiannis\par}
+  \vspace{0.3cm}
+  {\small Revised bilingual edition · 2026\par}
+\end{titlepage}
+\tableofcontents
+\input{frontmatter/en/preface}
+\mainmatter
+\part{Foundations}
+\input{chapters/en/ch01}
+\input{chapters/en/ch02}
+\part{Adversaries and Attacks}
+\input{chapters/en/ch03}
+\input{chapters/en/ch04}
+\input{chapters/en/ch05}
+\input{chapters/en/ch06}
+\part{Protection Mechanisms and Secure Engineering}
+\input{chapters/en/ch07}
+\input{chapters/en/ch08}
+\input{chapters/en/ch09}
+\input{chapters/en/ch10}
+\part{Operations, Investigation and Governance}
+\input{chapters/en/ch11}
+\input{chapters/en/ch12}
+\input{chapters/en/ch13}
+\end{document}

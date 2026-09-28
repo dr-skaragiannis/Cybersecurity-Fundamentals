@@ -1,0 +1,98 @@
+% ============================================================
+% Chapter 13: Cyber Resilience, Governance and Future Trends
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Cyber Resilience, Governance and Future Trends}\label{ch:13}
+\chaptermeta{Backups and recovery · BCP, RPO and RTO · Risk management · NIST CSF 2.0, ISO/IEC 27001, CIS · GDPR and NIS2 · Metrics · OT security · Zero Trust and cloud}{Level: Advanced · Strategy and governance}{Study time: 10–12 hours}
+
+The final chapter returns to the question raised in Chapter 1: \emph{can the organisation continue to operate, and recover, when things go wrong?} Technical controls are necessary but not sufficient. Resilience also depends on backups that work when needed, on plans that have been rehearsed, on decisions about risk that are taken consciously by accountable people, and on compliance with a growing body of law.
+
+The chapter first covers resilience engineering, backup architectures and business continuity. It then turns to governance: risk management in practice, the major frameworks and regulations, and the metrics that tell leadership whether security is improving. It concludes by looking at environments and trends that will shape the coming years—operational technology and critical infrastructure, Zero Trust architecture, and cloud and supply-chain security.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Design a backup strategy that survives ransomware and define RPO and RTO for critical services.
+  \item Build a risk register and choose appropriate treatment options.
+  \item Compare NIST CSF 2.0, ISO/IEC 27001 and the CIS Controls, and summarise the obligations of GDPR and NIS2.
+  \item Distinguish meaningful security metrics from vanity metrics.
+  \item Explain the particular constraints of OT security and the principles of Zero Trust and cloud shared responsibility.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Resilience engineering and backup architectures}\label{sec:13.1}
+\textbf{Resilience engineering} accepts that some attacks and failures will succeed and designs systems to degrade gracefully rather than collapse. Its tools include redundancy without shared single points of failure, the ability to isolate damaged components, and pre-planned modes of reduced operation—for example, a hospital that can continue admitting patients on paper when its electronic system is unavailable.
+
+Backups are the foundation of recovery, and modern ransomware deliberately targets them. The classic \textbf{3-2-1 rule}—three copies of the data, on two different types of media, one of them off-site—has therefore been extended to \textbf{3-2-1-1-0}: at least one copy should be \textbf{offline or immutable} (write-once storage or object lock that even an administrator cannot delete during the retention period), and restores should be tested so that there are \textbf{zero} unverified errors. Backup systems need their own separate credentials and MFA, because an attacker with domain-administrator rights will otherwise simply delete them before launching the encryption.
+
+\section{Business continuity and disaster recovery: RPO and RTO}\label{sec:13.2}
+\textbf{Business continuity planning (BCP)} ensures that critical business functions continue during a disruption, whereas \textbf{disaster recovery (DR)} focuses on restoring the IT systems that support them. Both start with a \textbf{business impact analysis}, which identifies critical processes and the consequences of their interruption over time. Two parameters then guide technical design. The \textbf{recovery point objective (RPO)} is the maximum acceptable amount of data loss, measured in time: an RPO of one hour requires backups or replication at least hourly. The \textbf{recovery time objective (RTO)} is the maximum acceptable time to restore the service. Shorter objectives are more expensive, so they should be justified by business impact.
+
+Plans are only credible if they are exercised. \textbf{DR playbooks} describe step by step how to restore each critical system, in what order (identity services and networking usually come first) and who is responsible. They are validated through tabletop exercises, partial restore tests and full failover drills, and the measured recovery times are compared with the RTO. A plan that has never been tested should be assumed not to work.
+
+\section{Enterprise risk management in practice}\label{sec:13.3}
+Chapter 1 defined risk; governance turns that definition into a management process. A \textbf{risk register} records each risk with a clear statement (\emph{threat} exploiting \emph{vulnerability} causing \emph{impact} on \emph{asset}), an owner, the existing controls, ratings of likelihood and impact, the chosen treatment and a review date. A \textbf{risk matrix}—commonly five by five—helps to visualise and compare risks, although qualitative scales should be defined carefully so that 'likely' means the same thing to everyone. Quantitative methods such as FAIR express risk in monetary terms and can support investment decisions.
+
+Every risk must receive an explicit \textbf{treatment decision}: \emph{mitigate} with additional controls, \emph{transfer} through insurance or contracts, \emph{avoid} by discontinuing the activity, or \emph{accept} it formally. Acceptance is legitimate only when it is made by someone with the authority to bear the consequences, is documented, and is reviewed periodically. Technical scores such as CVSS (Chapter 10) are inputs to this process, not substitutes for it.
+
+\section{Frameworks and regulation: NIST CSF 2.0, ISO/IEC 27001, CIS, GDPR and NIS2}\label{sec:13.4}
+Frameworks give structure to a security programme. The \textbf{NIST Cybersecurity Framework 2.0} (2024) organises outcomes into six functions: \emph{Govern}, \emph{Identify}, \emph{Protect}, \emph{Detect}, \emph{Respond} and \emph{Recover}; the new Govern function emphasises that cybersecurity is a leadership responsibility. \textbf{ISO/IEC 27001} specifies the requirements of an \emph{information security management system} (ISMS)—a cycle of risk assessment, control selection, monitoring and improvement—and is the basis for independent certification; its Annex A lists 93 reference controls. The \textbf{CIS Critical Security Controls} are a prioritised set of concrete technical safeguards, grouped into implementation groups for organisations of different maturity.
+
+Regulation makes certain practices mandatory. The EU \textbf{General Data Protection Regulation (GDPR)} requires appropriate security for personal data, data protection by design and by default, and notification of personal-data breaches to the supervisory authority within 72 hours. The \textbf{NIS2 Directive} extends cybersecurity obligations to a wide range of essential and important entities—energy, health, transport, digital infrastructure and more—requiring risk-management measures, supply-chain security, incident reporting (an early warning within 24 hours) and personal accountability of management bodies. In the United States, \textbf{HIPAA} imposes comparable safeguards on health information.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Frameworks and regulations at a glance}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Instrument} & \textbf{Nature} & \textbf{Primary focus} & \textbf{Typical use} \\
+    \midrule
+    NIST CSF 2.0 & Voluntary framework & Outcomes across six functions & Programme structure, maturity profiling \\
+    ISO/IEC 27001 & Certifiable standard & Management system (ISMS) & Certification, customer assurance \\
+    CIS Controls v8 & Prioritised control set & Concrete technical safeguards & Implementation roadmap \\
+    GDPR & EU regulation (binding) & Personal-data protection & Legal compliance, breach notification \\
+    NIS2 & EU directive (binding) & Security of essential/important entities & Risk management, incident reporting \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{Security metrics: signal versus vanity}\label{sec:13.5}
+Leadership needs evidence that security investment reduces risk. Many commonly reported numbers are \textbf{vanity metrics}: 'millions of attacks blocked' mostly counts automated internet noise, and 'number of tools deployed' says nothing about their effectiveness. \textbf{Meaningful metrics} are tied to decisions and outcomes: the percentage of critical assets covered by EDR and logging; the time to patch internet-facing vulnerabilities that are known to be exploited; MTTD and MTTR (Chapter 11); the phishing report rate (Chapter 5); the proportion of privileged accounts protected by phishing-resistant MFA; and the success rate and duration of backup restore tests compared with the RTO.
+
+Good metrics have a defined data source, a target and a trend over time, and each one should suggest an action if it moves in the wrong direction. Reporting a small number of such indicators consistently is far more useful to a board than a dashboard of hundreds of unexplained figures.
+
+\section{Critical infrastructure and operational technology}\label{sec:13.6}
+\textbf{Operational technology (OT)}—industrial control systems (ICS), SCADA systems and programmable logic controllers that run power grids, water treatment, manufacturing and medical devices—has priorities different from office IT. Safety and availability come first, systems may run for twenty years or more, and many industrial protocols such as Modbus were designed without authentication. Patching may require stopping a production line, and an aggressive network scan can crash a fragile controller. As Stuxnet and later attacks on energy grids showed, consequences can be physical.
+
+OT security therefore relies heavily on architecture. The \textbf{Purdue model} divides the environment into levels, from physical processes (level 0) and controllers (level 1) up to enterprise IT (levels 4–5). The standard \textbf{ISA/IEC 62443} groups assets into \emph{zones} and permits communication only through controlled \emph{conduits}, with an industrial demilitarised zone between IT and OT. Passive network monitoring designed for industrial protocols provides visibility without disturbing sensitive devices, while strict control of remote vendor access closes one of the most frequently abused entry points.
+
+\section{Zero Trust, cloud security and emerging threats}\label{sec:13.7}
+\textbf{Zero Trust Architecture} (NIST SP 800-207) abandons the idea that anything inside the network perimeter is trustworthy. Every access request is evaluated explicitly, using the identity of the user, the health of the device and the sensitivity of the resource; access is granted with least privilege, for a limited session; and the design assumes that a breach has already occurred. A \emph{policy decision point} evaluates each request, and a \emph{policy enforcement point} in front of each resource applies the decision. Zero Trust is a journey rather than a product: organisations typically progress from strong identity and MFA, through device compliance and micro-segmentation, to continuous, risk-adaptive access decisions.
+
+In the \textbf{cloud}, security follows a \textbf{shared responsibility model}: the provider secures the underlying infrastructure, while the customer remains responsible for identities, configuration and data. Most cloud breaches result from customer-side misconfigurations—publicly readable storage buckets, excessive permissions, exposed keys—which \emph{cloud security posture management} tools are designed to detect. Containers add their own requirements: minimal, scanned images, non-root execution, and default-deny Kubernetes network policies. Looking ahead, defenders must prepare for the transition to \textbf{post-quantum cryptography}, for AI-assisted phishing and deepfake-based fraud, and for continued attacks on the software supply chain. The principles of this book—least privilege, defence in depth, verification and resilience—remain the most reliable guide through these changes.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[3-2-1-1-0] Backup rule: 3 copies, 2 media, 1 off-site, 1 offline/immutable, 0 unverified restore errors.
+  \item[RPO / RTO] Maximum acceptable data loss (RPO) and maximum acceptable downtime (RTO).
+  \item[Risk register] A structured record of risks, owners, controls, ratings and treatment decisions.
+  \item[ISMS] Information security management system, as specified by ISO/IEC 27001.
+  \item[Purdue model] Layered reference architecture separating industrial control levels from enterprise IT.
+  \item[Shared responsibility] Division of security duties between a cloud provider and its customer.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Resilience assumes failure: immutable, tested backups with separate credentials are the core of ransomware recovery.
+  \item BCP and DR are driven by business impact, expressed through RPO and RTO, and are credible only when exercised.
+  \item Risk management records, rates and explicitly treats each risk, with acceptance decided by accountable owners.
+  \item NIST CSF 2.0, ISO/IEC 27001 and CIS Controls structure security programmes; GDPR and NIS2 make key practices mandatory.
+  \item OT security, Zero Trust and cloud shared responsibility extend the book's core principles to new environments.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why does the 3-2-1 rule alone not guarantee recovery from ransomware? What do the additional '1' and '0' add?
+  \item An online shop can tolerate losing 15 minutes of orders and being offline for 2 hours. Translate this into RPO/RTO and propose a technical design.
+  \item Who should be allowed to accept a high residual risk, and why must acceptance be documented?
+  \item Explain why active vulnerability scanning common in IT may be inappropriate in an OT environment.
+\end{enumerate}

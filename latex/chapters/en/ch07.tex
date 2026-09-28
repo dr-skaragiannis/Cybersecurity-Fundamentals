@@ -1,0 +1,78 @@
+% ============================================================
+% Chapter 7: Cryptographic Mechanisms and Public Key Infrastructure
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Cryptographic Mechanisms and Public Key Infrastructure}\label{ch:7}
+\chaptermeta{Symmetric and asymmetric encryption · Hash functions · Digital signatures · PKI and X.509 · TLS 1.3 · Key management}{Level: Intermediate · Applied cryptography}{Study time: 9–11 hours}
+
+Cryptography is the mathematical foundation of confidentiality, integrity and authenticity in digital systems. Chapter 6 ended with attacks that intercept and modify traffic; this chapter provides the tools that make such interception useless. The aim is not to derive the underlying mathematics but to build a precise understanding of what each primitive guarantees, how primitives are combined, and where real systems fail.
+
+The chapter first contrasts symmetric and asymmetric encryption and explains hash functions and digital signatures. It then shows how public key infrastructure (PKI) binds keys to identities through certificates, and dissects the TLS 1.3 handshake that protects most internet traffic today. It concludes with key management—the area where, in practice, most cryptographic failures occur.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Explain the difference between symmetric and asymmetric encryption and why practical systems combine them.
+  \item State the security properties of cryptographic hash functions and distinguish hashing from encryption.
+  \item Describe how digital signatures provide integrity, authenticity and (qualified) non-repudiation.
+  \item Explain the roles of CAs, RAs, certificate chains and revocation in a PKI.
+  \item Outline the TLS 1.3 handshake and identify common key-management failures.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Symmetric and asymmetric encryption}\label{sec:7.1}
+In \textbf{symmetric encryption}, the same secret key is used to encrypt and to decrypt. Modern symmetric algorithms such as \textbf{AES} and \textbf{ChaCha20} are extremely fast and, with 128- or 256-bit keys, are considered secure against all known practical attacks. Their weakness is logistical: both parties must already share the key, and a network of \emph{n} participants would need about n²/2 separate keys. Symmetric ciphers must also be used in an appropriate \emph{mode}; authenticated modes such as AES-GCM protect integrity as well as confidentiality.
+
+\textbf{Asymmetric (public-key) encryption} uses a mathematically related key pair. The \textbf{public key} can be distributed freely, while the \textbf{private key} is kept secret. Data encrypted with the public key can be decrypted only with the private key. Algorithms such as \textbf{RSA} and \textbf{elliptic-curve cryptography (ECC)} solve the key-distribution problem, but they are thousands of times slower than symmetric ciphers. Practical systems therefore use \textbf{hybrid encryption}: asymmetric techniques establish or protect a random symmetric \emph{session key}, and that key then encrypts the bulk data. Every TLS connection, and—as Chapter 4 showed—every modern ransomware attack, follows this pattern.
+
+\section{Cryptographic hash functions}\label{sec:7.2}
+A \textbf{cryptographic hash function} maps input of any length to a fixed-length output, the \emph{digest}. SHA-256, for instance, always produces 256 bits. Three properties make a hash function suitable for security. \textbf{Pre-image resistance}: given a digest, it is infeasible to find an input that produces it. \textbf{Second pre-image resistance}: given one input, it is infeasible to find a different input with the same digest. \textbf{Collision resistance}: it is infeasible to find \emph{any} two inputs with the same digest. MD5 and SHA-1 have lost collision resistance and must no longer be used for signatures; SHA-256, SHA-3 and BLAKE2 remain secure.
+
+Hashing is not encryption: there is no key and no way to 'decrypt' a digest. Hashes are used to verify file integrity, to index evidence in forensics (Chapter 12) and as building blocks of signatures. Combined with a secret key, they form an \textbf{HMAC}, which proves that a message came from someone who knows the key. For storing passwords, ordinary fast hashes are unsuitable, because attackers can test billions of guesses per second. Dedicated \textbf{password-hashing functions} such as Argon2, scrypt or bcrypt are deliberately slow and use a unique random \emph{salt} for each password.
+
+\section{Digital signatures and non-repudiation}\label{sec:7.3}
+A \textbf{digital signature} reverses the roles of the key pair. The signer computes a hash of the message and transforms it with their \emph{private} key; anyone can verify the result with the corresponding \emph{public} key. A valid signature demonstrates three things: the message has not been altered since it was signed (\textbf{integrity}), it was signed by the holder of the private key (\textbf{authenticity}), and the signer cannot easily claim otherwise later (\textbf{non-repudiation}). Common algorithms include RSA-PSS, ECDSA and Ed25519.
+
+Non-repudiation, however, is only as strong as the surrounding process. If the private key was stored unprotected on a shared computer, the signer can plausibly argue that someone else used it. Legal frameworks such as the EU \textbf{eIDAS} regulation therefore distinguish ordinary electronic signatures from \emph{qualified} electronic signatures, which require a qualified certificate and a certified signature-creation device, and which carry the legal effect of a handwritten signature.
+
+\section{Public key infrastructure and the X.509 certificate lifecycle}\label{sec:7.4}
+Public-key cryptography raises a new question: how do you know that a public key really belongs to the party you think it does? An attacker in the middle could substitute their own key. A \textbf{public key infrastructure (PKI)} answers this question by having a trusted \textbf{certificate authority (CA)} sign a \textbf{certificate} that binds a public key to an identity, such as a domain name. A \textbf{registration authority (RA)} verifies the applicant's identity before the CA issues the certificate. Certificates follow the \textbf{X.509} standard and contain, among other fields, the subject, the issuer, a validity period, the public key and extensions such as the \emph{Subject Alternative Name (SAN)}, which lists the domain names the certificate covers.
+
+Trust is organised as a \textbf{chain}: an offline \emph{root CA}, whose certificate is pre-installed in operating systems and browsers, signs \emph{intermediate CAs}, which in turn sign end-entity certificates. Verification walks up the chain to a trusted root. Certificates have a \textbf{lifecycle}—request (via a certificate signing request, CSR), issuance, deployment, renewal and, if a key is compromised, \textbf{revocation}, which is communicated through revocation lists (CRLs) or the online status protocol (OCSP). Because revocation checking is unreliable in practice, the industry is moving towards short-lived certificates renewed automatically with the ACME protocol.
+
+\section{TLS 1.3 and the applications of PKI}\label{sec:7.5}
+\textbf{Transport Layer Security (TLS)} protects web browsing (HTTPS), email transport, APIs and many other protocols. Version 1.3 (2018) simplified the protocol and removed obsolete, vulnerable options. The handshake requires only one round trip. The client sends a \emph{ClientHello} with its supported cipher suites and an ephemeral Diffie–Hellman key share; the server replies with its own key share, its certificate and a signature proving possession of the private key. Both sides then derive the same session keys. Because the Diffie–Hellman keys are ephemeral, TLS 1.3 always provides \textbf{forward secrecy}: stealing the server's private key later does not allow previously recorded traffic to be decrypted.
+
+The same PKI principles support other applications. \textbf{S/MIME} signs and encrypts email; \textbf{code signing} lets operating systems verify that software comes from a known publisher and has not been modified—which is why the stolen certificates used by Stuxnet were so damaging; and \textbf{mutual TLS (mTLS)} requires the client as well as the server to present a certificate, a pattern widely used for service-to-service authentication in modern architectures.
+
+\section{Key management: where cryptography actually fails}\label{sec:7.6}
+Modern algorithms are rarely broken mathematically; systems fail because keys are generated poorly, stored carelessly or never rotated. Typical failures include private keys committed to public source-code repositories, hard-coded credentials in applications, predictable random-number generators, and certificates that expire unnoticed and cause outages. \textbf{Key management} covers the entire lifecycle: secure generation with a cryptographically secure random source, protected storage, controlled distribution, regular rotation, revocation and, finally, destruction.
+
+High-value keys belong in dedicated hardware. A \textbf{hardware security module (HSM)} or a cloud key-management service performs cryptographic operations internally, so that the private key never leaves the device. Access to keys should follow least privilege and separation of duties, and every use should be logged. Looking ahead, organisations should also maintain an inventory of where each algorithm is used (\emph{crypto-agility}), so that vulnerable algorithms can be replaced—for example, as post-quantum algorithms standardised by NIST are adopted.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Hybrid encryption] Using asymmetric cryptography to protect a symmetric session key that encrypts the data.
+  \item[Collision resistance] The infeasibility of finding two different inputs with the same hash digest.
+  \item[Digital signature] A value computed with a private key that proves a message's integrity and origin.
+  \item[Certificate authority] A trusted entity that signs certificates binding public keys to identities.
+  \item[Forward secrecy] The property that compromise of long-term keys does not expose past session traffic.
+  \item[HSM] Hardware security module: a tamper-resistant device that stores keys and performs cryptographic operations.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Symmetric ciphers are fast but need a shared key; asymmetric algorithms solve key distribution; hybrid schemes combine both.
+  \item Hash functions provide integrity checks, not confidentiality; passwords require slow, salted password-hashing functions.
+  \item Digital signatures provide integrity and authenticity; non-repudiation also depends on key custody and legal context.
+  \item PKI binds keys to identities through certificate chains; lifecycle management and revocation are essential.
+  \item TLS 1.3 offers a fast handshake with forward secrecy, but most real failures arise from poor key management.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why do practical systems not encrypt large files directly with RSA?
+  \item A developer stores passwords as unsalted SHA-256 digests. Explain the risk and propose a better design.
+  \item Walk through how a browser verifies the certificate chain of a website.
+  \item Explain forward secrecy and why TLS 1.3 removed static RSA key exchange.
+\end{enumerate}

@@ -1,0 +1,78 @@
+% ============================================================
+% Chapter 6: Network Security: Attacks, Defences and Botnet Topologies
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Network Security: Attacks, Defences and Botnet Topologies}\label{ch:6}
+\chaptermeta{DoS and DDoS · Amplification · Botnets and command-and-control · Man-in-the-middle · Firewalls · VPNs · Segmentation, NAC and wireless security}{Level: Intermediate · Networks}{Study time: 8–10 hours}
+
+Networks connect everything, and whatever connects can also be attacked. This chapter examines how adversaries abuse network protocols to disrupt availability, to intercept or manipulate traffic, and to coordinate thousands of compromised devices. It assumes basic familiarity with the TCP/IP model; where a protocol detail is essential, it is explained in the text.
+
+The first half of the chapter focuses on attacks: denial of service and its distributed and amplified forms, the architecture and lifecycle of botnets, and man-in-the-middle techniques. The second half turns to defence. It shows how layered DDoS mitigation works in practice and introduces the building blocks of network defence—firewalls, virtual private networks, segmentation, network access control and wireless security—each with a clear statement of what it can and cannot achieve.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Distinguish volumetric, protocol and application-layer denial-of-service attacks, and explain amplification.
+  \item Compare centralised and peer-to-peer botnet architectures and describe the botnet lifecycle.
+  \item Explain ARP spoofing, DNS spoofing and TLS stripping, and the controls that prevent them.
+  \item Design a layered DDoS defence from the network edge to the application.
+  \item Describe the roles and limits of firewalls, VPNs, segmentation, 802.1X and WPA3.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Denial of service: DoS, DDoS and amplification}\label{sec:6.1}
+A \textbf{denial-of-service (DoS)} attack aims to make a service unavailable to its legitimate users. When the attack traffic comes from many sources at once, it is called a \textbf{distributed denial of service (DDoS)}, and it becomes much harder to block because no single source can simply be filtered out. DDoS attacks fall into three broad families. \textbf{Volumetric} attacks saturate the victim's bandwidth. \textbf{Protocol} attacks exhaust state in servers or network devices; the classic \emph{SYN flood} sends many TCP connection requests without completing the handshake, filling the server's table of half-open connections. \textbf{Application-layer} attacks send seemingly legitimate but expensive requests—such as search queries—that exhaust the application itself.
+
+\textbf{Amplification} allows an attacker with modest bandwidth to generate enormous floods. The attacker sends small requests with a forged source address (the victim's) to public servers that return much larger responses. Protocols such as DNS, NTP and memcached have been abused in this way, with amplification factors ranging from tens to tens of thousands. Two measures address the root cause: networks should drop outgoing packets with forged source addresses (\emph{ingress filtering}, BCP 38), and operators should not expose open resolvers or other amplifiers to the internet.
+
+\section{Botnets: architectures, lifecycle and IoT conscription}\label{sec:6.2}
+A \textbf{botnet} is a network of compromised devices ('bots') controlled remotely by an operator. In a \textbf{centralised} architecture, bots receive commands from one or a few command-and-control (C2) servers, historically over IRC and today mostly over HTTPS. This design is simple but fragile: seizing the C2 servers disables the botnet. \textbf{Peer-to-peer} botnets distribute commands among the bots themselves, which makes takedowns much harder. Operators also use \emph{domain generation algorithms} that produce thousands of candidate domain names every day, so that defenders cannot pre-emptively block them all.
+
+A botnet's lifecycle comprises \textbf{recruitment} (infecting new devices), \textbf{command and control}, \textbf{monetisation} (DDoS-for-hire, spam, credential stuffing, cryptocurrency mining) and \textbf{maintenance} (updating and defending the bots). The \textbf{Mirai} botnet of 2016 showed how weak the Internet of Things was: it simply tried a list of about sixty factory-default usernames and passwords on cameras and routers, recruited hundreds of thousands of devices, and launched attacks that disrupted major internet services. The lesson for manufacturers and operators is clear—unique credentials, automatic updates and no unnecessary remote services.
+
+\section{Interception and manipulation: man-in-the-middle attacks}\label{sec:6.3}
+In a \textbf{man-in-the-middle (MITM)} attack, the adversary positions themselves between two communicating parties, so that traffic passes through a system they control. On a local network, \textbf{ARP spoofing} achieves this by sending forged messages that associate the attacker's hardware address with the IP address of the default gateway; victims then send their traffic to the attacker. \textbf{DNS spoofing} returns false answers to name queries, redirecting users to malicious servers. On public Wi-Fi, an \emph{evil twin} access point with a familiar network name can attract unsuspecting clients.
+
+Once in the middle, the attacker can passively \textbf{sniff} unencrypted traffic or actively modify it—for instance through \emph{TLS stripping}, which downgrades a connection from HTTPS to HTTP. Cryptography is the fundamental countermeasure: properly validated TLS (Chapter 7) makes intercepted traffic unreadable and tampering detectable, and \textbf{HTTP Strict Transport Security (HSTS)} prevents downgrades. At the network level, \emph{dynamic ARP inspection} and \emph{DHCP snooping} on switches, DNSSEC validation and 802.1X authentication reduce the opportunities for interception.
+
+\section{Layered DDoS defence in practice}\label{sec:6.4}
+No single device can absorb every DDoS attack, so defence is organised in layers, each handling what it does best. At the \textbf{upstream} layer, internet service providers and cloud scrubbing services absorb volumetric floods using capacity far larger than any individual organisation's link; anycast routing spreads the load across many data centres. At the \textbf{network edge}, routers apply access lists and rate limits, and \emph{remote-triggered black-holing} can sacrifice a single attacked address to protect the rest of the network.
+
+Closer to the service, \textbf{protocol defences} such as \emph{SYN cookies} allow servers to handle floods of half-open connections without storing state. At the \textbf{application} layer, content delivery networks, web application firewalls, caching and per-client rate limiting filter expensive requests, while challenges such as CAPTCHAs separate humans from bots. Finally, a documented \textbf{runbook}—who to call, how to activate scrubbing, how to communicate with customers—ensures that the organisation reacts in minutes rather than hours.
+
+\section{Firewalls and virtual private networks}\label{sec:6.5}
+A \textbf{firewall} enforces a policy about which traffic may pass between network zones. \emph{Packet filters} examine individual packets by address, port and protocol. \emph{Stateful} firewalls track connections, so that a reply is allowed only if it matches a request that was sent. \emph{Next-generation firewalls} additionally identify applications and users and may integrate intrusion prevention. Regardless of generation, one design rule is fundamental: the policy should \textbf{deny by default} and allow only explicitly required flows, in line with the fail-safe defaults principle.
+
+A \textbf{virtual private network (VPN)} creates an encrypted tunnel across an untrusted network. \textbf{IPsec} operates at the network layer and is common for site-to-site links; \textbf{TLS-based VPNs} are convenient for remote users; \textbf{WireGuard} is a modern protocol with a deliberately small code base and fixed, contemporary cryptography. It is important to understand what a VPN does \emph{not} do: it protects traffic in transit but does not make the connecting device trustworthy. A compromised laptop connected via VPN brings the attacker inside the network, which is one reason why organisations are moving towards Zero Trust access (Chapter 13).
+
+\section{Segmentation, network access control and wireless security}\label{sec:6.6}
+\textbf{Network segmentation} divides a network into zones—for example, user workstations, servers, management interfaces and guest Wi-Fi—and allows only the traffic that each zone genuinely needs. Segmentation does not prevent the first compromise, but it limits how far an attacker can move afterwards; the WannaCry case in Chapter 4 showed the cost of flat networks. \emph{Micro-segmentation} applies the same idea down to individual workloads.
+
+\textbf{Network access control (NAC)} decides whether a device may join the network at all. The IEEE \textbf{802.1X} standard requires each device to authenticate—usually with a certificate—before a switch port or wireless connection is activated, and can place non-compliant devices in a quarantine network. Wireless security has evolved considerably: WEP is completely broken, WPA2 is vulnerable to offline password guessing when weak passphrases are used, and \textbf{WPA3} introduces the SAE handshake, which resists such guessing and provides forward secrecy. In enterprises, WPA2/WPA3-Enterprise with 802.1X remains the recommended configuration.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[DDoS] Distributed denial of service: an availability attack launched from many sources simultaneously.
+  \item[Amplification] Using third-party servers that return large responses to small, spoofed requests.
+  \item[Botnet / C2] A network of compromised devices and the command-and-control channel that directs them.
+  \item[ARP spoofing] Forging ARP messages to redirect local traffic through the attacker.
+  \item[Stateful firewall] A firewall that tracks connections and permits replies only to legitimate requests.
+  \item[802.1X] Port-based network access control that authenticates devices before granting connectivity.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item DDoS attacks target bandwidth, protocol state or application resources; amplification multiplies the attacker's power through spoofing.
+  \item Botnets are controlled through centralised or peer-to-peer C2 and are monetised in many ways; Mirai exposed the weakness of default IoT credentials.
+  \item MITM attacks exploit trust in local protocols; validated TLS, HSTS and switch-level protections are the primary countermeasures.
+  \item DDoS defence is layered, from upstream scrubbing to application rate limiting, and depends on a prepared runbook.
+  \item Firewalls, VPNs, segmentation and NAC each solve specific problems—none of them makes a compromised device trustworthy.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Explain why an attacker using DNS amplification needs to forge the source IP address of their requests.
+  \item Why are peer-to-peer botnets harder to take down than centralised ones?
+  \item Describe how HSTS defeats a TLS-stripping attack on a public Wi-Fi network.
+  \item A company says, 'All remote staff use our VPN, so their laptops are safe.' Critically evaluate this statement.
+\end{enumerate}

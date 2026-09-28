@@ -1,0 +1,93 @@
+% ============================================================
+% Chapter 3: Threat Actors, Motivations and Attack Lifecycle Models
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Threat Actors, Motivations and Attack Lifecycle Models}\label{ch:3}
+\chaptermeta{Actor taxonomy · The hacker spectrum · Cyber Kill Chain · MITRE ATT\&CK · Diamond Model and D3FEND · Threat intelligence and sharing}{Level: Beginner–Intermediate · Adversary thinking}{Study time: 6–8 hours}
+
+Defences are only meaningful in relation to the adversaries they are meant to stop. A small business and a national energy operator face very different opponents, with different goals, resources and patience. This chapter therefore shifts the perspective from the system to the attacker.
+
+We begin by classifying threat actors according to motivation and capability, and by clarifying the ethical and legal distinctions behind the familiar 'hat' terminology. We then study three complementary models that describe how attacks unfold: the Lockheed Martin Cyber Kill Chain, the MITRE ATT\&CK knowledge base and the Diamond Model of intrusion analysis. The chapter concludes with cyber threat intelligence—how knowledge about adversaries is produced, evaluated and shared responsibly.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Classify threat actors by motivation, capability and persistence, and relate them to appropriate defences.
+  \item Distinguish white-, grey- and black-hat activity on the basis of authorisation and intent.
+  \item Map an attack to the phases of the Cyber Kill Chain and to ATT\&CK tactics and techniques.
+  \item Use the Diamond Model to structure the analysis of an intrusion.
+  \item Describe the intelligence lifecycle and apply the Traffic Light Protocol when sharing information.
+\end{itemize}
+\end{outcomesbox}
+
+\section{A taxonomy of threat actors}\label{sec:3.1}
+Threat actors are usefully grouped by what they want and what they can do. \textbf{Nation-state groups}, often called \emph{advanced persistent threats (APTs)}, pursue espionage, sabotage or influence; they can afford zero-day exploits and supply-chain operations and may remain inside a network for months or years. \textbf{Cybercriminals} are motivated by profit; the ransomware-as-a-service economy has given even moderately skilled affiliates access to professional tooling. \textbf{Hacktivists} seek publicity for a political or social cause, typically through denial-of-service attacks, website defacement or leaks.
+
+\textbf{Insiders} deserve special attention because they already hold legitimate access and therefore defeat perimeter-based assumptions. A \emph{malicious} insider may steal data or sabotage systems out of greed or grievance, whereas a \emph{negligent} insider causes harm unintentionally, for instance through misconfiguration or by falling for a phishing email. Understanding which actors are relevant allows an organisation to select controls in proportion to the real risk rather than to the most sensational headlines.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Threat actor profiles}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Actor} & \textbf{Motivation} & \textbf{Capability} & \textbf{Typical dwell time} & \textbf{Characteristic techniques} \\
+    \midrule
+    Nation-state APT & Espionage, sabotage, influence & Very high & Months to years & Spear-phishing, living-off-the-land, covert command and control \\
+    Cybercriminal & Financial gain & Medium to high & Days to weeks & Phishing, ransomware, data theft for extortion \\
+    Hacktivist & Ideology, publicity & Low to medium & Hours to days & DDoS, defacement, doxing \\
+    Malicious insider & Gain, grievance & Medium (authorised access) & Variable & Privilege abuse, data exfiltration \\
+    Negligent insider & None (error) & Low (unwitting) & — & Misconfiguration, password reuse \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{The hacker spectrum: ethics and legality}\label{sec:3.2}
+The popular 'hat' vocabulary classifies \textbf{authorisation and intent}, not technical skill. A \textbf{white-hat} (ethical) hacker tests systems only with explicit, written permission and within an agreed scope, reporting findings so that they can be fixed. A \textbf{black-hat} hacker acts without authorisation and with malicious or self-serving intent. Between them lies the \textbf{grey-hat}, who may act without permission but without clear malice—for example, by scanning a company's website and then informing it of a vulnerability.
+
+Students should understand that good intentions do not create legal authorisation. In most jurisdictions, including those implementing the EU Directive on attacks against information systems, accessing a system without permission is a criminal offence even if no damage occurs. This is why professional penetration testing (Chapter 10) always begins with a signed scope and rules of engagement, and why coordinated vulnerability disclosure programmes and bug bounties exist: they convert grey-hat curiosity into authorised, protected research.
+
+\section{The Lockheed Martin Cyber Kill Chain}\label{sec:3.3}
+The \textbf{Cyber Kill Chain}, published by Lockheed Martin in 2011, describes a targeted intrusion as seven consecutive phases: \textbf{reconnaissance} (gathering information about the target), \textbf{weaponisation} (pairing an exploit with a payload), \textbf{delivery} (for example, an email attachment), \textbf{exploitation} (triggering the vulnerability), \textbf{installation} (establishing persistence), \textbf{command and control} (opening a remote channel) and \textbf{actions on objectives} (data theft, encryption, sabotage).
+
+The model's key insight is defensive: because the attacker must succeed at \emph{every} phase, the defender needs to break the chain only \emph{once}. Early interruption is cheaper—blocking a malicious attachment during delivery avoids an expensive incident response later. The model has limitations, however. It was designed around malware-based intrusions entering from outside, and it describes insider threats, credential abuse and cloud attacks less well. For that reason it is usually combined with the more granular ATT\&CK framework.
+
+\section{MITRE ATT\&CK: tactics, techniques and procedures}\label{sec:3.4}
+\textbf{MITRE ATT\&CK} is a publicly available knowledge base of adversary behaviour, built from observations of real intrusions. It is organised as a matrix. The columns are \textbf{tactics}—the attacker's short-term goals, such as \emph{Initial Access}, \emph{Execution}, \emph{Persistence}, \emph{Privilege Escalation}, \emph{Defense Evasion}, \emph{Credential Access}, \emph{Lateral Movement} and \emph{Exfiltration}. Each column contains \textbf{techniques} that describe \emph{how} the goal is achieved; for example, T1059.001 denotes command execution through PowerShell. \textbf{Procedures} are the concrete ways a specific group has used a technique.
+
+ATT\&CK gives defenders a common language. A security team can map its detection rules to techniques and immediately see where coverage is missing; a threat-intelligence report can state which techniques a group uses; and a red team can emulate those techniques to test whether the defences actually work. The emphasis on \emph{behaviour} rather than on easily changed indicators such as file hashes is what makes the framework durable.
+
+\section{The Diamond Model and MITRE D3FEND}\label{sec:3.5}
+The \textbf{Diamond Model of Intrusion Analysis} represents every malicious event through four connected features: the \textbf{adversary}, the \textbf{capability} (tools and malware), the \textbf{infrastructure} (domains, servers, IP addresses) and the \textbf{victim}. The strength of the model lies in \emph{pivoting}: once an analyst knows one vertex, the connections suggest where to look next. A malware sample (capability) may reveal a command-and-control domain (infrastructure), whose registration details may connect to other victims and eventually to an adversary profile.
+
+Whereas ATT\&CK catalogues offensive behaviour, \textbf{MITRE D3FEND} catalogues defensive countermeasures—such as \emph{process spawn analysis} or \emph{credential hardening}—and links them to the offensive techniques they counter. Used together, the Kill Chain answers \emph{when} to intervene, ATT\&CK \emph{what} the adversary does, the Diamond Model \emph{who and with what}, and D3FEND \emph{which control} addresses each behaviour.
+
+\section{Cyber threat intelligence: lifecycle, types and responsible sharing}\label{sec:3.6}
+\textbf{Cyber threat intelligence (CTI)} is information about adversaries that has been collected, analysed and put into context so that it supports a decision. It is produced through an \textbf{intelligence lifecycle}: \emph{direction} (defining what decision-makers need to know), \emph{collection}, \emph{processing}, \emph{analysis}, \emph{dissemination} and \emph{feedback}. Intelligence is often divided into three levels. \textbf{Strategic} intelligence informs executives about trends and risks; \textbf{operational} intelligence describes campaigns and actors; \textbf{tactical} intelligence provides technical details such as techniques and indicators of compromise.
+
+Intelligence gains value when it is shared, but sharing must respect the source's wishes. The \textbf{Traffic Light Protocol (TLP 2.0)} labels information as \emph{TLP:RED} (named recipients only), \emph{TLP:AMBER} (the recipient's organisation, on a need-to-know basis), \emph{TLP:GREEN} (the wider community) or \emph{TLP:CLEAR} (public). Machine-readable exchange relies on \textbf{STIX}, a standard language for describing threat information, and \textbf{TAXII}, a protocol for transporting it. Sector communities such as Information Sharing and Analysis Centres (ISACs) allow organisations facing similar threats to warn each other quickly.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[APT] Advanced persistent threat: a well-resourced actor that maintains long-term covert access.
+  \item[Kill Chain] Seven-phase model of a targeted intrusion, from reconnaissance to actions on objectives.
+  \item[TTPs] Tactics, techniques and procedures: the behavioural description of how an adversary operates.
+  \item[Diamond Model] Analytic model linking adversary, capability, infrastructure and victim.
+  \item[TLP] Traffic Light Protocol: labels that define how widely shared information may be redistributed.
+  \item[STIX / TAXII] Standard language (STIX) and transport protocol (TAXII) for exchanging threat intelligence.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Threat actors differ in motivation, capability and persistence; defences should be proportionate to the actors that are actually relevant.
+  \item The 'hat' terminology concerns authorisation and intent; unauthorised access is illegal regardless of motive.
+  \item The Kill Chain shows that breaking any single phase stops an intrusion, and earlier interruption is cheaper.
+  \item ATT\&CK describes adversary behaviour in detail and provides a common language for detection, intelligence and testing.
+  \item The Diamond Model supports pivoting during analysis, and intelligence must be shared under clear rules such as TLP.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why are insider threats difficult to address with perimeter-based controls? Propose two controls that are effective against them.
+  \item Map a typical phishing-to-ransomware attack onto the seven phases of the Cyber Kill Chain.
+  \item Explain why detections based on ATT\&CK techniques are more durable than detections based on file hashes.
+  \item A partner shares a report marked TLP:AMBER. May you forward it to a supplier? Justify your answer.
+\end{enumerate}

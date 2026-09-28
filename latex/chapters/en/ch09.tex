@@ -1,0 +1,78 @@
+% ============================================================
+% Chapter 9: Secure Software Design and Engineering
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Secure Software Design and Engineering}\label{ch:9}
+\chaptermeta{Shift-left and DevSecOps · Injection · Cross-site scripting · CSRF and clickjacking · API security, SSRF and broken access control · Secrets and the software supply chain}{Level: Intermediate · Development}{Study time: 8–10 hours}
+
+Most vulnerabilities are not created by attackers; they are written, unintentionally, by developers. A single missing validation check can expose millions of records, and fixing a flaw after release costs far more than preventing it during design. Secure software engineering therefore aims to make security a normal property of everyday development work rather than a final inspection before release.
+
+This chapter first presents the \emph{shift-left} philosophy and the engineering principles that guide secure design. It then explains, for each of the most important web vulnerability classes—injection, cross-site scripting, cross-site request forgery, server-side request forgery and broken access control—why the flaw occurs and which defence addresses its root cause. It concludes with secrets management, logging and the protection of the software supply chain. The vulnerability classes discussed here correspond closely to the OWASP Top 10.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Explain shift-left security and how security activities are embedded in a DevSecOps pipeline.
+  \item Explain the root cause of injection and apply parameterised queries.
+  \item Distinguish stored, reflected and DOM-based XSS and apply context-aware output encoding and CSP.
+  \item Describe CSRF, clickjacking, SSRF and broken access control, with their defences.
+  \item Describe how SCA, SBOMs and SLSA protect the software supply chain.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Shift-left security, DevSecOps and core engineering principles}\label{sec:9.1}
+\textbf{Shift-left} means moving security activities earlier—'to the left'—in the development timeline. Security requirements are defined together with functional requirements; \textbf{threat modelling} (for example with the STRIDE method: spoofing, tampering, repudiation, information disclosure, denial of service, elevation of privilege) identifies risks while the design can still be changed cheaply; and automated checks run on every code change. \textbf{DevSecOps} integrates these checks into the continuous integration and delivery pipeline, so that a commit introducing a known-vulnerable library or a hard-coded password fails the build just like a failing unit test.
+
+Several engineering principles guide secure code. \textbf{Validate input} on the server side against an allow-list of what is expected, because every input from outside the trust boundary may be hostile. \textbf{Encode output} for the context in which it is used. Keep the \textbf{attack surface minimal} by removing unused features and endpoints. \textbf{Fail securely}, so that errors deny access and do not leak internal details. And prefer well-tested \textbf{framework security features} over home-made mechanisms, in the spirit of the economy-of-mechanism principle from Chapter 1.
+
+\section{SQL and NoSQL injection: parameterisation versus concatenation}\label{sec:9.2}
+\textbf{Injection} occurs when untrusted data are interpreted as part of a command. The classic case is SQL built by string concatenation, such as \texttt{''SELECT * FROM users WHERE name = ''' + input + '''''}. If an attacker enters \texttt{' OR '1'='1}, the condition becomes always true and the query returns every user; more elaborate payloads can read other tables, modify data or, in some configurations, execute operating-system commands. The root cause is the \emph{mixing of code and data} in a single string.
+
+The definitive defence is the \textbf{parameterised query} (prepared statement), in which the SQL structure is sent to the database separately from the values: \texttt{SELECT * FROM users WHERE name = ?}. The database then treats the input strictly as data, whatever characters it contains. Object-relational mappers provide the same protection when used correctly. Input validation and least-privilege database accounts are valuable additional layers, but escaping special characters by hand is error-prone and should not be relied upon. NoSQL databases are not immune: accepting JSON objects such as \texttt{\{''\$ne'': null\}} in a MongoDB query can bypass authentication in exactly the same way.
+
+\section{Cross-site scripting: stored, reflected and DOM-based}\label{sec:9.3}
+\textbf{Cross-site scripting (XSS)} is injection into the web browser. An attacker causes a website to deliver JavaScript that runs in the victim's browser with the full privileges of that site—reading session data, performing actions on the user's behalf or altering the page. In \textbf{stored XSS}, the malicious script is saved on the server (for example in a comment) and served to every visitor. In \textbf{reflected XSS}, the script is part of a crafted link and is immediately echoed back in the response. In \textbf{DOM-based XSS}, the vulnerability lies entirely in client-side code that writes untrusted data into the page, for instance through \texttt{innerHTML}.
+
+The primary defence is \textbf{context-aware output encoding}: data inserted into HTML, into an HTML attribute, into JavaScript or into a URL must each be encoded according to the rules of that context. Modern frameworks such as React and Angular encode by default, and developers should avoid bypasses such as \texttt{dangerouslySetInnerHTML} unless the content has been sanitised with a library like DOMPurify. A \textbf{Content Security Policy (CSP)} adds defence in depth by instructing the browser to execute only scripts from approved sources, while the \texttt{HttpOnly} cookie flag prevents scripts from reading session cookies.
+
+\section{Cross-site request forgery and clickjacking}\label{sec:9.4}
+In \textbf{cross-site request forgery (CSRF)}, a malicious website causes the victim's browser to send a request to another site where the victim is logged in. Because browsers automatically attach cookies, the target site sees an authenticated request—for example, to change the account's email address or transfer money—that the user never intended. Defences include \textbf{anti-CSRF tokens} (unpredictable values embedded in forms and verified by the server), the \textbf{SameSite} cookie attribute, which prevents cookies from being sent with most cross-site requests, and re-authentication for sensitive actions.
+
+\textbf{Clickjacking} embeds the target site invisibly inside a frame on an attacker's page and tricks the user into clicking buttons they cannot see. It is prevented by forbidding framing through the \texttt{frame-ancestors} directive of CSP or the older \texttt{X-Frame-Options} header.
+
+\section{API security: broken access control, SSRF and XXE}\label{sec:9.5}
+\textbf{Broken access control} is the most prevalent category in the OWASP Top 10. Its most common API form is the \emph{insecure direct object reference} (IDOR, also called BOLA): a request such as \texttt{GET /api/invoices/1043} returns the invoice even when it belongs to another customer, because the server checks \emph{that} the user is logged in but not \emph{whether} they own the object. Every request must be authorised on the server, for every object, following the complete-mediation principle. APIs should also enforce authentication with properly validated tokens, apply rate limits, and return only the fields the client needs.
+
+\textbf{Server-side request forgery (SSRF)} tricks a server into making requests on the attacker's behalf—for example, a 'fetch image from URL' feature that is pointed at internal services or at the cloud metadata endpoint \texttt{169.254.169.254}, which may reveal temporary credentials. Defences include allow-listing destinations, blocking internal address ranges and using the hardened metadata service (IMDSv2). \textbf{XML external entity (XXE)} attacks abuse XML parsers that resolve external references, allowing files to be read from the server; the remedy is to disable external entities and document type definitions in the parser configuration.
+
+\section{Secrets, logging and the software supply chain}\label{sec:9.6}
+\textbf{Secrets}—passwords, API keys, private keys—must never be written into source code or configuration files committed to version control, because repositories are copied, shared and sometimes made public. They belong in a dedicated secrets manager (such as HashiCorp Vault or a cloud key vault), are injected at runtime, and are rotated regularly; secret-scanning tools in the pipeline catch accidental commits. \textbf{Security logging} should record authentication events, access-control failures and administrative actions with enough context for investigation, but must never record passwords, tokens or unnecessary personal data.
+
+Modern applications consist mostly of third-party code: a typical project may depend on hundreds of open-source packages. \textbf{Software composition analysis (SCA)} identifies these dependencies and flags those with known vulnerabilities, as in the Log4Shell incident of 2021. A \textbf{software bill of materials (SBOM)}, in formats such as SPDX or CycloneDX, lists every component so that affected systems can be found within minutes when a new vulnerability is announced. The \textbf{SLSA} framework (\emph{Supply-chain Levels for Software Artifacts}) defines increasing levels of assurance for the build process—such as signed, reproducible builds with verifiable provenance—so that attacks like the SolarWinds build compromise become detectable.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Shift-left] Moving security activities earlier in the development lifecycle.
+  \item[Threat modelling] Systematic identification of threats to a design, e.g. with STRIDE.
+  \item[Parameterised query] A query whose structure is fixed and whose values are passed separately as data.
+  \item[XSS] Cross-site scripting: injection of script that runs in the victim's browser under the site's origin.
+  \item[IDOR / BOLA] Access to objects by identifier without checking that the requester is authorised for them.
+  \item[SBOM] Software bill of materials: an inventory of all components in a piece of software.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Security is cheapest when built in early: threat modelling and automated pipeline checks are the core of DevSecOps.
+  \item Injection arises from mixing code and data; parameterised queries remove the root cause.
+  \item XSS is prevented by context-aware output encoding, safe framework defaults and CSP.
+  \item CSRF, clickjacking, SSRF and XXE each have specific, well-established defences; broken access control requires server-side authorisation of every object.
+  \item Secrets managers, careful logging, SCA, SBOMs and SLSA protect the application and its supply chain.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Explain why escaping quotes is a weaker defence against SQL injection than parameterised queries.
+  \item Classify the following as stored, reflected or DOM-based XSS: a search page that prints the query from the URL using innerHTML.
+  \item Why does the SameSite cookie attribute mitigate CSRF but not XSS?
+  \item When Log4Shell was announced, how would an SBOM have helped an organisation respond?
+\end{enumerate}

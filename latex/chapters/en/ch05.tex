@@ -1,0 +1,78 @@
+% ============================================================
+% Chapter 5: Human Factors, Social Engineering and Digital Safety
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Human Factors, Social Engineering and Digital Safety}\label{ch:5}
+\chaptermeta{Psychology of persuasion · Phishing and its variants · Physical vectors · Stalkerware and metadata · Business email compromise · Security culture}{Level: Beginner · Human-centred}{Study time: 5–7 hours}
+
+Technical controls protect systems, but systems are operated by people, and people can be persuaded. Social engineering exploits trust, helpfulness, fear and habit to make a legitimate user perform an action that benefits the attacker—opening an attachment, revealing a password, approving a payment. Industry breach reports consistently find that the human element is involved in the majority of successful intrusions.
+
+This chapter explains why social engineering works, surveys the main attack methods, and examines two threats that have grown sharply in recent years: business email compromise and multi-factor authentication fatigue. It also addresses personal digital safety, including stalkerware and metadata leakage. The chapter closes with a constructive message: users are not the 'weakest link' to be blamed, but a detection layer to be strengthened through good design and a positive reporting culture.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Explain the psychological principles that social engineers exploit.
+  \item Distinguish phishing, spear-phishing, whaling, vishing, smishing, pretexting and baiting.
+  \item Describe physical and observational attack vectors and their countermeasures.
+  \item Analyse a business email compromise and an MFA-fatigue attack, and propose layered defences.
+  \item Design awareness measures and metrics that reduce susceptibility without blaming users.
+\end{itemize}
+\end{outcomesbox}
+
+\section{The psychology of exploitation}\label{sec:5.1}
+Social engineering succeeds because it targets mental shortcuts that normally serve us well. The psychologist Robert Cialdini described several \textbf{principles of persuasion} that attackers routinely exploit. \emph{Authority}: people tend to obey instructions that appear to come from a manager, the IT department or the police. \emph{Urgency and scarcity}: a deadline ('your account will be closed in one hour') reduces the time available for careful thought. \emph{Social proof}: we assume an action is safe if others seem to be doing it. \emph{Liking} and \emph{reciprocity}: we are more willing to help someone who is friendly or who has done us a small favour.
+
+These principles are powerful because they bypass deliberate reasoning and trigger fast, automatic responses. Stress, fatigue and information overload make everyone more susceptible, regardless of intelligence or technical skill. Effective defences therefore do not rely on people being permanently alert; they introduce \emph{friction at the right moment}—for example, a mandatory call-back before any change of bank details—so that the automatic response is interrupted when it matters most.
+
+\section{Attack methods: from bulk phishing to pretexting}\label{sec:5.2}
+\textbf{Phishing} is the mass distribution of fraudulent messages that imitate trusted organisations in order to steal credentials or deliver malware. \textbf{Spear-phishing} targets a specific person or group and uses researched details—names of colleagues, current projects—to appear credible. \textbf{Whaling} is spear-phishing aimed at senior executives. The same techniques are applied over other channels: \textbf{vishing} uses voice calls, often with spoofed caller IDs and, increasingly, AI-generated voices, while \textbf{smishing} uses SMS or messaging apps.
+
+\textbf{Pretexting} involves inventing a plausible scenario—an auditor who needs a report, a technician who must 'verify' a password—to obtain information or access. \textbf{Baiting} leaves an attractive item, such as a USB stick labelled 'Salaries 2026', where a victim will find it and plug it in. The common element is that the attacker creates a situation in which the harmful action feels normal, helpful or urgent.
+
+\section{Physical and observational vectors}\label{sec:5.3}
+Not every social-engineering attack happens online. \textbf{Tailgating} (or \emph{piggybacking}) means following an authorised person through a secured door, often while carrying boxes so that holding the door open feels like simple courtesy. \textbf{Shoulder surfing} is observing a screen or keypad to capture passwords or PINs, and \textbf{dumpster diving} is searching discarded paper and equipment for useful information. Physical access is particularly dangerous because it can bypass many network controls entirely—an attacker who reaches an unlocked workstation or a network port is already 'inside'.
+
+Countermeasures combine technology and behaviour: mantraps and turnstiles that admit one person at a time, visible visitor badges, a clear-desk and clear-screen policy, privacy filters on displays, cross-cut shredding and certified destruction of storage media. Staff should feel entitled to challenge an unfamiliar person politely; this is easier when management explicitly supports it.
+
+\section{Personal digital safety: stalkerware and metadata leakage}\label{sec:5.4}
+Some of the most harmful attacks are carried out not by distant criminals but by people close to the victim. \textbf{Stalkerware} is commercially available software that, once installed on a phone, secretly forwards messages, location, photos and call logs to another person. It is frequently associated with intimate-partner abuse. Warning signs include unexplained battery drain, unknown device-administrator apps and a partner who knows things they should not. Because removing stalkerware can alert the abuser and escalate danger, victims should seek support from specialist organisations before acting.
+
+\textbf{Metadata}—data about data—can reveal far more than intended. A photograph's EXIF metadata may contain the exact GPS coordinates where it was taken, the device model and the time; office documents may include the author's name and revision history. Before sharing files publicly, users should remove such metadata, for instance with the \texttt{exiftool -all=} command or the built-in 'remove properties' features of operating systems and office suites.
+
+\section{Business email compromise and MFA fatigue}\label{sec:5.5}
+\textbf{Business email compromise (BEC)} is a fraud in which the attacker impersonates an executive, supplier or lawyer—either by compromising a real mailbox or by registering a look-alike domain—and requests an urgent payment or a change of bank details. BEC often involves no malware at all, so it evades technical filters; it relies entirely on authority and urgency. Effective defences are procedural as well as technical: payment changes must be verified through a known phone number, high-value transfers require approval by two people (\emph{maker–checker}), and email authentication (SPF, DKIM and a DMARC policy of \texttt{p=reject}) makes domain spoofing much harder.
+
+\textbf{MFA fatigue} (or \emph{push bombing}) targets users of push-notification authentication. Having stolen a password, the attacker triggers dozens of login approvals, often late at night, until the exhausted user taps 'Approve'—sometimes after a phone call from a fake help desk. Countermeasures include \emph{number matching} (the user must type a code shown on the login screen), limits on the number of prompts, and phishing-resistant methods such as FIDO2 security keys (Chapter 8).
+
+\section{Building a report-positive security culture}\label{sec:5.6}
+Awareness programmes often measure the wrong thing. The \textbf{click rate} in simulated phishing campaigns mainly reflects how difficult the simulation was; it can be pushed up or down at will. A far more meaningful metric is the \textbf{report rate}—the proportion of users who report a suspicious message—together with the \textbf{time to first report}. A single early report allows the security team to remove a malicious message from every mailbox before most recipients have even opened it.
+
+Culture determines whether people report. If employees who click on a phishing link are publicly shamed or punished, they will hide their mistakes, and the organisation loses its earliest warning. A report-positive culture makes reporting easy (a single button in the mail client), thanks people for every report—including false alarms—and treats mistakes as learning opportunities. In this way, users become an active detection layer rather than a liability.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Social engineering] Manipulating people into performing actions or revealing information that benefit the attacker.
+  \item[Spear-phishing] Phishing tailored to a specific individual or group using researched details.
+  \item[Pretexting] Inventing a plausible scenario to obtain information or access.
+  \item[BEC] Business email compromise: fraud that impersonates trusted parties to redirect payments.
+  \item[MFA fatigue] Flooding a user with authentication prompts until one is approved.
+  \item[DMARC] Email policy that tells receivers how to treat messages failing SPF/DKIM checks.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Social engineering exploits automatic responses to authority, urgency, social proof, liking and reciprocity.
+  \item Phishing appears in many forms and channels; pretexting and baiting create situations in which harmful actions feel normal.
+  \item Physical access can bypass network controls and must be protected by both technology and staff behaviour.
+  \item BEC and MFA fatigue are countered by verification procedures, dual approval, email authentication and phishing-resistant MFA.
+  \item Report rate, not click rate, is the metric that matters; a blame-free culture turns users into a detection layer.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Identify the persuasion principles used in the message: 'This is the CEO. I need the supplier payment sent in the next 30 minutes—do not call, I am in a meeting.'
+  \item Why is BEC difficult to stop with antivirus or sandboxing? Which controls are effective?
+  \item Explain how number matching defeats a basic MFA-fatigue attack.
+  \item Argue why report rate is a better awareness metric than click rate.
+\end{enumerate}

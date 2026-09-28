@@ -1,0 +1,97 @@
+% ============================================================
+% Chapter 4: Taxonomy of Malware and Malicious Code
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Taxonomy of Malware and Malicious Code}\label{ch:4}
+\chaptermeta{Viruses · Worms · Trojans · Spyware · Ransomware · Fileless attacks · Rootkits · Indicators of compromise · Stuxnet, WannaCry, Emotet}{Level: Intermediate · Malicious code}{Study time: 8–10 hours}
+
+Malicious software is the most visible instrument of cyberattacks, yet media reports often use its terminology loosely. Calling every infection a 'virus' is not only imprecise; it can lead to the wrong response. A worm must be contained by isolating networks, whereas a trojan must be stopped by preventing execution. Precise classification is therefore an operational necessity, not an academic exercise.
+
+This chapter organises malware by \emph{mechanism}—how it spreads, how it hides and what it does—rather than by the names of individual families. It then examines the advanced techniques that allow modern implants to evade detection, explains how compromise can be recognised on hosts and networks, dissects the modern ransomware operation and draws lessons from three landmark cases.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Distinguish malware classes by replication, propagation and payload, and choose the appropriate containment strategy.
+  \item Explain fileless execution, polymorphism and rootkits, and why they defeat signature-based detection.
+  \item Recognise host and network indicators of compromise and explain why correlation is required.
+  \item Describe the stages of a modern ransomware attack and the correct order of response.
+  \item Extract defensive lessons from Stuxnet, WannaCry and Emotet.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Core classifications: what replicates, what deceives, what profits}\label{sec:4.1}
+A \textbf{virus} attaches itself to a host file or document and replicates only when that host is executed, so it usually depends on some user action. A \textbf{worm}, by contrast, is self-contained and spreads across networks on its own by exploiting vulnerable services; the Morris Worm and WannaCry's propagation over the SMB protocol are classic examples. A \textbf{trojan} does not replicate at all. It masquerades as legitimate software to persuade the victim to run it, and its danger lies in its social plausibility and in the payloads it carries.
+
+Other classes are defined by what they do rather than how they spread. \textbf{Spyware} secretly collects user activity or data; \textbf{adware} monetises the victim's attention and often serves as a gateway for spyware; \textbf{keyloggers} record keystrokes to capture passwords. \textbf{Ransomware} denies access to data, either by encrypting files (\emph{crypto-ransomware}) or by locking the system (\emph{locker ransomware}), and today usually combines encryption with data theft—the so-called \emph{double extortion}.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Malware classes and their primary defences}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Class} & \textbf{Self-replicating?} & \textbf{Needs user action?} & \textbf{Primary defence} \\
+    \midrule
+    Virus & Yes, via host files & Usually & Execution prevention, antivirus, patching \\
+    Worm & Yes, across the network & No & Network segmentation, prompt patching of services, IDS \\
+    Trojan & No & Yes (deception) & Application allow-listing, code signing, user awareness \\
+    Ransomware & Sometimes (worm-like) & Often (phishing, exposed RDP) & Immutable backups, MFA, EDR, patching \\
+    Spyware / keylogger & No & Yes (bundled software) & Least privilege, monitoring of outbound traffic \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{Advanced mechanics: fileless execution, polymorphism and rootkits}\label{sec:4.2}
+Traditional antivirus products scan files on disk and compare them with known signatures. Modern implants are designed to defeat exactly this approach. \textbf{Fileless malware} resides in memory, in the registry, in WMI subscriptions or in scheduled tasks, and abuses legitimate system tools such as PowerShell, \texttt{mshta} or \texttt{wmic}. This practice is called \emph{living off the land}, because the attacker uses what is already installed. Techniques such as \emph{reflective DLL injection} and \emph{process hollowing} load malicious code into the memory of a trusted process, so that no suspicious executable ever touches the disk.
+
+\textbf{Polymorphic} and \textbf{metamorphic} code changes its byte representation with every infection—through encryption wrappers or instruction substitution—while its behaviour remains the same. A signature written for one copy therefore fails to match the next, which is why defenders turn to behavioural detection and pattern-based rules such as YARA (Chapter 11). \textbf{Rootkits} go one step further: operating in user mode, in the kernel, in the boot process or even in firmware, they intercept system queries in order to hide files, processes and network connections. Because a rootkit controls what the compromised system reports about itself, it must be detected from \emph{outside} that system—through secure boot, memory forensics or offline disk analysis.
+
+\section{Indicators of compromise on hosts and networks}\label{sec:4.3}
+A compromise usually reveals itself as a \textbf{deviation from the normal baseline}. On a host, typical signs include sustained CPU, disk or network activity without a corresponding user workload; new persistence mechanisms such as registry \emph{Run} keys, services, cron jobs or WMI subscriptions; unusual process trees, for example a word processor launching a command shell; and evidence that defences were tampered with, such as a disabled endpoint agent or a cleared security log (Windows Event ID 1102). On the network, suspicious signs include regular 'beaconing' connections at fixed intervals, very long or random-looking domain names, and TLS client fingerprints that do not match any legitimate software in the organisation.
+
+An important principle of analysis is that \textbf{a single indicator only suggests; several correlated indicators confirm}. Administrators occasionally run PowerShell, and legitimate software sometimes contacts unusual domains. Confidence grows when independent observations point to the same conclusion—for example, an Office document spawning PowerShell, which then creates a Run key and begins contacting a newly registered domain every sixty seconds. Chapter 11 turns this principle into detection rules, and Chapter 12 applies it to forensic analysis.
+
+\section{Droppers, loaders, remote-access trojans and wipers}\label{sec:4.4}
+Modern intrusions are rarely carried out by a single program. Instead, a chain of specialised components hands control from one stage to the next. A \textbf{dropper} carries its payload inside itself and writes it to the system. A \textbf{downloader} or \textbf{loader}—Emotet, TrickBot and QakBot are well-known examples—fetches further modules from the internet after the initial infection, which has enabled a \emph{crimeware-as-a-service} economy in which one group sells access to another. A \textbf{remote access trojan (RAT)} gives the attacker interactive control: keystroke logging, screen capture, file transfer and use of the victim as a proxy.
+
+A \textbf{wiper} such as Shamoon, WhisperGate or HermeticWiper is designed purely for destruction, although it may disguise itself as ransomware. Correct identification is critical here: because no decryption key exists, a response plan that considers paying the ransom is not only futile but actively harmful, as it delays recovery from backups. When analysing an incident, analysts should therefore name the \emph{stage} they have observed, not merely the family—'QakBot loader, before RAT deployment' is far more useful to responders than 'QakBot'.
+
+\section{Anatomy of modern ransomware}\label{sec:4.5}
+Contemporary crypto-ransomware relies on \textbf{hybrid encryption}. Each file is encrypted with a fast symmetric algorithm (AES or ChaCha20) and a unique key; these keys are in turn encrypted with the attacker's public key (RSA or elliptic-curve), so that only the attacker can recover them. Before encryption begins, the malware typically deletes Windows shadow copies and backup catalogues (for example with \texttt{vssadmin delete shadows}) in order to prevent easy recovery, and it attempts to disable security tools, sometimes by rebooting the system into safe mode where endpoint agents do not run.
+
+Pressure on the victim is applied through \textbf{multiple extortion}: data are encrypted, stolen data are threatened with publication on a leak site, and some groups add denial-of-service attacks or contact the victim's customers directly. The correct response follows a disciplined order: first \textbf{isolate} affected hosts and compromised identities; then \textbf{preserve evidence}, including memory images and the ransom notes, which contain victim identifiers; next \textbf{identify the strain} and check whether a free decryptor exists (for instance on the No More Ransom portal); and only then \textbf{restore} from backups that are known to be clean. Paying the ransom guarantees neither decryption nor deletion of the stolen data, and it may also raise legal issues.
+
+\begin{keybox}{Key principle}
+The single most effective technical control against ransomware is a backup that the attacker cannot reach or modify: offline or immutable, regularly tested, and protected by separate credentials (see Chapter 13).
+\end{keybox}
+
+\section{Landmark case studies: Stuxnet, WannaCry and Emotet}\label{sec:4.6}
+\textbf{Stuxnet} (discovered in 2010) targeted Siemens programmable logic controllers that operated uranium-enrichment centrifuges. It used several zero-day vulnerabilities, crossed an air gap via USB media, carried drivers signed with stolen certificates, and altered the physical behaviour of machinery while showing operators normal readings. Its lesson is that operational-technology environments cannot rely on isolation alone (Chapter 13).
+
+\textbf{WannaCry} (2017) combined ransomware with a worm that exploited the SMBv1 vulnerability MS17-010 (the \emph{EternalBlue} exploit). Within hours it disrupted organisations worldwide, including hospitals of the UK's National Health Service, even though a patch had been available for two months. The lesson is that slow patching and flat, unsegmented networks reinforce each other: once a worm enters, nothing slows its spread. \textbf{Emotet} (2014–2021) evolved from a banking trojan into a loader-as-a-service distributed through malicious email, delivering TrickBot and ultimately Ryuk ransomware, until an international law-enforcement operation dismantled its infrastructure. Its lesson is that criminal ecosystems operate like supply chains, and defending against the initial loader stage prevents everything that follows.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[Worm] Self-contained malware that spreads across networks without user action.
+  \item[Trojan] Malware disguised as legitimate software that does not self-replicate.
+  \item[Fileless malware] Malicious code that runs from memory or system tools without dropping executables on disk.
+  \item[Rootkit] Malware that hides its presence by intercepting the operating system's own reporting.
+  \item[Loader] Malware stage that downloads and runs further modules after initial infection.
+  \item[Double extortion] Ransomware tactic combining encryption with the threat of publishing stolen data.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Malware is best classified by mechanism—replication, propagation and payload—because each mechanism calls for a different containment strategy.
+  \item Fileless techniques, polymorphism and rootkits defeat file signatures and require behavioural and out-of-band detection.
+  \item Indicators of compromise gain meaning through correlation; a single anomaly is only a lead.
+  \item Modern intrusions are staged chains of droppers, loaders, RATs and final payloads such as ransomware or wipers.
+  \item Stuxnet, WannaCry and Emotet illustrate the limits of isolation, the cost of slow patching and the supply-chain nature of cybercrime.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why does the containment strategy for a worm differ from that for a trojan? Give one concrete measure for each.
+  \item Explain why process hollowing defeats hash-based application allow-listing.
+  \item List three host indicators and two network indicators that, together, would convince you that a workstation is compromised.
+  \item Why is it dangerous to treat a wiper as if it were ransomware?
+\end{enumerate}

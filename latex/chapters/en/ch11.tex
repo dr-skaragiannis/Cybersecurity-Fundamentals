@@ -1,0 +1,87 @@
+% ============================================================
+% Chapter 11: Detection, Threat Hunting, Incident Response and Lab Operations
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Detection, Threat Hunting, Incident Response and Lab Operations}\label{ch:11}
+\chaptermeta{IDS/IPS · Signatures and anomaly detection · Evasion · Threat hunting · YARA and Sigma · Isolated labs · NIST incident response · SOC operations}{Level: Intermediate–Advanced · Operations}{Study time: 10–12 hours}
+
+Prevention eventually fails. Chapter 1 introduced defence in depth precisely because every preventive control has gaps, and the preceding chapters have shown how skilled adversaries find them. This chapter therefore concerns what happens next: how an organisation \emph{detects} malicious activity, \emph{searches} proactively for threats that evaded its alerts, and \emph{responds} in a disciplined way that limits damage and preserves evidence.
+
+We begin with intrusion detection and prevention systems, the two main inspection paradigms and the techniques attackers use to evade them. We then turn to proactive threat hunting, the YARA and Sigma rule languages, and the design of isolated laboratories in which malware can be studied safely. The chapter concludes with the incident response lifecycle defined by NIST and with the organisation of a Security Operations Centre (SOC).
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Compare network- and host-based IDS/IPS and the signature and anomaly inspection paradigms.
+  \item Explain common IDS evasion techniques and the role of traffic normalisation.
+  \item Plan a hypothesis-driven threat hunt using endpoint and memory telemetry.
+  \item Write basic YARA and Sigma rules and manage detections as code.
+  \item Apply the NIST incident response lifecycle and describe SOC tiers and the SIEM pipeline.
+\end{itemize}
+\end{outcomesbox}
+
+\section{IDS and IPS architectures and inspection paradigms}\label{sec:11.1}
+An \textbf{intrusion detection system (IDS)} monitors activity and raises alerts; an \textbf{intrusion prevention system (IPS)} sits in the traffic path and can block malicious activity automatically. A \textbf{network IDS (NIDS)}, such as Suricata, Snort or Zeek, analyses copies of network traffic from a switch mirror port or a network tap and sees communication between many hosts. A \textbf{host IDS (HIDS)}, such as Wazuh or OSSEC, runs on individual systems and observes file changes, logs and processes—including activity inside encrypted connections that a network sensor cannot read. The two views are complementary.
+
+Detection logic follows two paradigms. \textbf{Signature-based} detection matches known patterns, such as a specific exploit string; it is precise and easy to explain but blind to new attacks. \textbf{Anomaly- or behaviour-based} detection models what is normal and flags deviations, such as a workstation suddenly transferring gigabytes at night; it can find unknown attacks but generates more false positives and requires a careful baseline. Mature programmes combine both and tune them continuously, because an alert that analysts learn to ignore is worse than no alert at all.
+
+\section{Evasion techniques and automated mitigation}\label{sec:11.2}
+Attackers try to make the IDS see something different from what the target actually receives. \textbf{Fragmentation} splits a malicious payload across many small packets or overlapping fragments; \textbf{encoding} and obfuscation disguise known strings; manipulating timing or \emph{TTL} values can cause the sensor and the destination to reassemble a stream differently; and, increasingly, attacks are simply hidden inside \textbf{encrypted} TLS traffic. Countermeasures include \textbf{traffic normalisation}, which reassembles streams in the same way as the end host, TLS inspection at controlled points where it is lawful and proportionate, and a greater reliance on host-based telemetry and metadata such as connection timing.
+
+When an IPS or an automated playbook responds, it can \textbf{drop} the offending packets, \textbf{reset} the TCP connection, \textbf{block} the source address for a period, \textbf{reconfigure} a firewall, or \textbf{isolate} an endpoint from the network. Automation shortens response time dramatically, but a wrongly tuned rule can also cut off legitimate business activity. Automatic blocking is therefore reserved for high-confidence detections, while lower-confidence alerts are routed to analysts.
+
+\section{Proactive threat hunting and endpoint telemetry}\label{sec:11.3}
+\textbf{Threat hunting} starts from the assumption that an adversary may already be present without having triggered any alert. A hunt is driven by a \textbf{hypothesis}, typically derived from threat intelligence or from ATT\&CK—for example, 'an attacker is using scheduled tasks for persistence on our servers'. The hunter then queries the available telemetry, investigates anomalies and reaches a conclusion. Whatever the outcome, a good hunt ends by turning its logic into an automated detection, so that the same behaviour will be caught in future.
+
+Hunting depends on rich \textbf{endpoint telemetry}. Tools such as Microsoft Sysmon record process creation with full command lines, network connections, driver loads and registry changes; EDR platforms collect similar data at scale; and on Linux, \texttt{auditd} and eBPF-based sensors provide equivalent visibility. \textbf{Memory analysis} with frameworks such as Volatility can reveal injected code, hidden processes and decrypted malware configurations that never touched the disk—an essential capability against the fileless techniques described in Chapter 4.
+
+\section{YARA, Sigma and detection-as-code}\label{sec:11.4}
+\textbf{YARA} is a pattern-matching language for classifying files and memory. A rule has three parts: \emph{meta} (descriptive information), \emph{strings} (text, hexadecimal or regular-expression patterns) and a \emph{condition} that combines them, for example \texttt{uint16(0) == 0x5A4D and 2 of (\$s*)}, meaning 'a Windows executable containing at least two of the listed strings'. Good rules target characteristics that the malware author cannot easily change—unique code sequences, configuration structures—rather than a single string, and they are tested against a corpus of legitimate files to avoid false positives.
+
+Whereas YARA inspects files, \textbf{Sigma} describes suspicious patterns in \emph{log events} in a vendor-neutral format that can be converted into queries for different SIEM platforms. \textbf{Detection-as-code} applies software-engineering discipline to both: rules are stored in version control, peer-reviewed, tested automatically against sample data, mapped to ATT\&CK techniques and deployed through a pipeline. \textbf{SOAR} (security orchestration, automation and response) platforms then execute playbooks when a detection fires—enriching the alert, opening a ticket and, if confidence is high, isolating the host.
+
+\section{Designing isolated analysis laboratories}\label{sec:11.5}
+Detection engineering and malware analysis require a place where hostile code can run without endangering real systems. A safe laboratory relies on \textbf{virtualisation}: analysis machines run as virtual machines on a dedicated host, with \textbf{snapshots} that allow them to be restored to a clean state after every experiment. Networking is set to \emph{host-only} or to an internal network with no route to the internet or the production environment; where network behaviour must be observed, simulated services such as INetSim or FakeNet answer the malware's requests.
+
+Isolation must also be procedural. Shared folders and clipboard synchronisation between host and guest should be disabled, samples should be stored in password-protected archives and clearly labelled, and analysts should remember that some malware detects virtual machines and changes its behaviour. These precautions are an application of the same containment thinking that governs incident response.
+
+\section{The incident response lifecycle (NIST SP 800-61)}\label{sec:11.6}
+NIST Special Publication 800-61 describes incident response as a cycle of four phases. \textbf{Preparation} comes first and determines everything else: an approved plan, defined roles, contact lists, communication templates, tools, logging and regular exercises. \textbf{Detection and analysis} confirms that an incident has occurred, determines its scope and severity, and documents every step. \textbf{Containment, eradication and recovery} limits the damage—short-term by isolating systems and disabling compromised accounts, long-term by rebuilding them—removes the attacker's footholds and restores normal operation from trusted sources. \textbf{Post-incident activity} holds a blameless lessons-learned review within a few weeks and feeds improvements back into preparation.
+
+Two tensions run through every incident. The first is between \textbf{speed and evidence}: switching off a machine stops the attack but destroys the contents of memory, so evidence should be captured before disruptive actions whenever possible (Chapter 12). The second is between \textbf{containment and intelligence}: removing the attacker too early, before their full footprint is known, may simply alert them and cause them to use another backdoor. The revised guidance (Rev. 3, 2025) aligns these activities with the functions of the NIST Cybersecurity Framework 2.0.
+
+\begin{notebox}{Legal and regulatory clocks}
+Many incidents trigger mandatory notifications—for example, 72 hours to the supervisory authority under the GDPR for personal-data breaches, and an early warning within 24 hours under NIS2 for significant incidents (Chapter 13). The response plan must identify who decides and who notifies.
+\end{notebox}
+
+\section{SOC operations: tiers, the SIEM pipeline and use-case engineering}\label{sec:11.7}
+A \textbf{Security Operations Centre (SOC)} is the team and infrastructure that monitors an organisation continuously. Work is traditionally divided into tiers: \textbf{Tier 1} analysts triage incoming alerts, \textbf{Tier 2} investigates confirmed incidents in depth, and \textbf{Tier 3} specialists hunt for threats, analyse malware and engineer detections. The central tool is the \textbf{SIEM} (security information and event management) platform, whose pipeline \emph{collects} logs from many sources, \emph{normalises} them into a common schema, \emph{enriches} them with context such as asset owners and threat intelligence, \emph{correlates} events into alerts and \emph{stores} them for investigation and compliance.
+
+A SIEM is only as good as its \textbf{use cases}—the specific threats it is configured to detect. Each use case should state the threat it addresses (ideally as an ATT\&CK technique), the data sources it requires, the detection logic, the expected false-positive rate and the response procedure. SOC performance is commonly measured through the \textbf{mean time to detect (MTTD)} and the \textbf{mean time to respond (MTTR)}, together with the proportion of alerts that turn out to be actionable—a key indicator of analyst workload and burnout.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[NIDS / HIDS] Network-based and host-based intrusion detection systems.
+  \item[Traffic normalisation] Reassembling traffic as the destination would, to defeat evasion.
+  \item[Threat hunting] Hypothesis-driven, proactive search for adversaries that evaded detection.
+  \item[YARA / Sigma] Rule languages for matching patterns in files (YARA) and in log events (Sigma).
+  \item[Containment] Incident-response actions that limit the spread and impact of an attack.
+  \item[SIEM] Platform that collects, normalises, correlates and stores security events.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Network and host sensors provide complementary visibility; signature and anomaly detection each have strengths and weaknesses.
+  \item Attackers evade inspection through fragmentation, encoding and encryption; normalisation and host telemetry counter them.
+  \item Threat hunting is hypothesis-driven and should end by creating new automated detections.
+  \item YARA and Sigma rules, managed as code and connected to SOAR, turn knowledge into repeatable detection and response.
+  \item Incident response follows the NIST lifecycle, balancing speed with evidence preservation, and the SOC operationalises it through tiers, a SIEM and measurable use cases.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Why can a host-based sensor detect an attack inside HTTPS traffic that a network IDS misses?
+  \item Formulate a hunting hypothesis for credential dumping from LSASS and list the telemetry you would need.
+  \item Why should a YARA rule not rely on a single string such as a C2 domain name?
+  \item During an incident, a manager wants to shut down the affected server immediately. Discuss the trade-offs.
+\end{enumerate}

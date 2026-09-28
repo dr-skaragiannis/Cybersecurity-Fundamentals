@@ -1,0 +1,133 @@
+% ============================================================
+% Chapter 1: Foundations of Information Security and the CIA Triad
+% Language: English — edit freely; regenerate from src/content if preferred.
+% ============================================================
+\chapter{Foundations of Information Security and the CIA Triad}\label{ch:1}
+\chaptermeta{Definitions · CIA and its extensions · Design principles · Historical evolution · Security models · Evaluation criteria}{Level: Beginner · Theory-first}{Study time: 6–8 hours}
+
+Every later chapter of this book—whether it deals with operating systems, cryptography, identity or incident response—relies on a small set of shared ideas. This chapter introduces that vocabulary. It explains what we mean when we speak of \emph{security}, which properties of information we are trying to protect, and which design principles experienced engineers apply before they choose any specific product or technology.
+
+The chapter proceeds from definitions to principles and then to formal models. We first distinguish cybersecurity from the broader notions of information assurance and cyber resilience. We then examine the CIA triad and the properties that extend it, the classic design principles of Saltzer and Schroeder, and the historical events that shaped modern defensive thinking. The chapter closes with the formal models (Bell–LaPadula, Biba, Clark–Wilson) and evaluation schemes that allow security claims to be stated precisely and verified independently.
+
+\begin{outcomesbox}{Learning outcomes}
+After studying this chapter you should be able to:
+\begin{itemize}
+  \item Define cybersecurity, information assurance and cyber resilience, and explain how the three concepts differ in scope.
+  \item Decompose a security requirement into confidentiality, integrity and availability, and recognise when extended properties (authenticity, accountability, non-repudiation, possession, utility) are needed.
+  \item Apply least privilege, defence in depth, fail-safe defaults and security by design when reviewing an architecture.
+  \item Distinguish threat, vulnerability and risk, and describe how controls reduce likelihood or impact.
+  \item Explain the purpose of formal security models and of independent evaluation schemes such as the Common Criteria.
+\end{itemize}
+\end{outcomesbox}
+
+\section{Definitions: cybersecurity, information assurance and cyber resilience}\label{sec:1.1}
+\textbf{Cybersecurity} is the discipline of protecting networked systems, data and services against unauthorised access, modification, disruption and destruction, while preserving their legitimate operation even under adversarial conditions. The phrase \emph{under adversarial conditions} is important: unlike reliability engineering, which deals with random faults, security assumes an intelligent opponent who deliberately searches for the weakest point.
+
+\textbf{Information assurance (IA)} has a broader scope. It combines technical, procedural and managerial measures in order to maintain \emph{justified confidence} in information throughout its lifecycle—from creation and storage to transmission, use and eventual destruction. IA is therefore concerned not only with resisting attacks, but also with authenticity, provenance and the continued usefulness of information.
+
+\textbf{Cyber resilience} extends both ideas. It describes an organisation's capacity to anticipate, withstand, recover from and adapt to adverse cyber events, including those that succeed despite preventive controls. Put simply, cybersecurity asks \emph{how do we prevent and detect compromise?}, information assurance asks \emph{can we trust our information?}, and resilience asks \emph{can we keep operating, and how quickly can we recover?}
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Three related but distinct concepts}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Concept} & \textbf{Guiding question} & \textbf{Typical controls} & \textbf{Consequence if neglected} \\
+    \midrule
+    Cybersecurity & Can an adversary breach or disrupt the system? & Firewalls, IDS/IPS, patching, MFA, encryption & Intrusion, data breach, service outage \\
+    Information assurance & Can we trust the information? & Hashing, digital signatures, provenance, classification & Silent corruption, repudiation, misinformation \\
+    Cyber resilience & Can we operate through failure? & Backups, failover, playbooks, BCP/DR & Prolonged outage, unrecoverable loss \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{The CIA triad and its extensions}\label{sec:1.2}
+The \textbf{CIA triad}—Confidentiality, Integrity and Availability—is the standard way of breaking a security requirement into its core objectives. \textbf{Confidentiality} limits disclosure of information to authorised parties; it is typically enforced through access control and encryption. \textbf{Integrity} protects information against unauthorised or undetected modification, so that data remain accurate and complete; hashes, digital signatures, version control and validated transactions all serve this goal. \textbf{Availability} ensures timely and reliable access for authorised users, and is supported by redundancy, capacity planning, rate limiting and recovery procedures.
+
+Several further properties refine the triad rather than replace it. \textbf{Authenticity} establishes that data or a party is genuinely what it claims to be. \textbf{Accountability} links every action to an identifiable subject by means of trustworthy audit records. \textbf{Non-repudiation} provides evidence that makes it difficult for a party to deny an action later—although its strength ultimately depends on key custody, identity proofing and the legal context.
+
+The three objectives interact and frequently compete. Encryption strengthens confidentiality, but if the keys are lost the data become unavailable. Redundancy improves availability, yet every additional replica is one more system that must be protected and kept consistent. A well-reasoned architecture therefore states which objectives each control supports, identifies any new exposure that the control introduces, and explains how the remaining (residual) risk will be managed.
+
+\begin{examplebox}{Worked example}
+A hospital encrypts its patient database (confidentiality) and replicates it to a second site (availability). If the only copy of the decryption key is stored on the primary server and that server is destroyed by ransomware, the replica is useless: confidentiality has been preserved at the expense of availability. Sound key management is the control that reconciles the two goals.
+\end{examplebox}
+
+\section{Design principles that govern all later chapters}\label{sec:1.3}
+Four principles recur throughout this book as architectural constraints. \textbf{Security by design} requires security properties to be specified, modelled, implemented and verified from the very beginning of the lifecycle, rather than added after deployment, when changes are costly and incomplete. \textbf{Defence in depth} combines independent and diverse preventive, detective and corrective controls, so that the failure of any single layer does not decide the outcome. The \textbf{principle of least privilege} grants each user, process or service only the authority required for a defined task and for a defined period, and removes that authority when it is no longer needed. \textbf{Fail-safe defaults} deny access unless it is explicitly permitted, and require components to fail into a known safe state.
+
+These principles originate in the seminal 1975 paper by Saltzer and Schroeder, which also introduced \emph{economy of mechanism} (keep designs small and simple so that they can be inspected), \emph{complete mediation} (check every access, not only the first), \emph{open design} (security must not depend on the secrecy of the design), \emph{separation of privilege} (require more than one independent condition for sensitive actions), \emph{least common mechanism} (minimise shared components between users) and \emph{psychological acceptability} (security must be usable, or people will circumvent it).
+
+The principles are complementary and must be applied together. Layering without least privilege simply multiplies the number of powerful accounts an attacker can steal; a strict deny-by-default policy without workable procedures encourages users to find unsafe workarounds. A useful professional habit is to name the violated principle in every post-incident review—for example, a wire transfer approved by a single person violates separation of privilege.
+
+\section{Historical evolution: from Creeper to the hyper-connected enterprise}\label{sec:1.4}
+Modern security architecture is best understood as an accumulation of lessons, not as a sequence of threats that replaced one another. Early ARPANET experiments such as \emph{Creeper} and its counterpart \emph{Reaper} (early 1970s) demonstrated both self-propagating code and automated removal. The \emph{Morris Worm} of 1988 showed how a single software flaw could cascade through interconnected hosts, and led directly to the creation of the first Computer Emergency Response Team (CERT).
+
+The commercial Internet and the World Wide Web then dramatically widened the attack surface: remotely reachable services, SQL injection, cross-site scripting, botnets and organised cybercrime became everyday concerns. In the following decades, cloud computing, mobile platforms, ransomware-as-a-service, identity-centric attacks, software supply-chain compromises and the convergence of IT with operational technology (OT) introduced new administrative domains and new dependencies.
+
+Each era rested on a trust assumption that attackers eventually disproved. Today's enterprise is hybrid, highly interconnected and dependent on external identity, software and infrastructure providers. The practical conclusion is that network location alone can no longer establish trust; identity, device health and authorisation must be verified continuously—the core idea of Zero Trust, which Chapter 13 examines in detail.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Trust assumptions and the failures that disproved them}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Era} & \textbf{Trust assumption} & \textbf{Representative failure} & \textbf{Resulting control innovation} \\
+    \midrule
+    1970s–80s & Trusted hosts and trusted users & Creeper, Morris Worm & Access control, CERTs \\
+    1990s–2000s & Trusted inside, hostile outside & Code Red, SQL Slammer & Firewalls, patch management, antivirus \\
+    2010s & Trusted vendors, VPN perimeter & Target breach, WannaCry & Segmentation, EDR, MFA \\
+    2020s & Never trust, always verify & SolarWinds, OT ransomware & Zero Trust, SBOM, XDR \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{Threat, vulnerability and risk: the working vocabulary}\label{sec:1.5}
+Three terms are often used interchangeably in everyday speech, but they have distinct technical meanings. A \textbf{threat} is any circumstance, event or actor capable of causing harm—a criminal group, a disgruntled employee, a flood. A \textbf{vulnerability} is a weakness that a threat can exploit or trigger—an unpatched service, a weak password, a missing backup. \textbf{Risk} is the potential for adverse impact under uncertainty; it only exists when a relevant threat meets an exploitable vulnerability in an asset that matters.
+
+The familiar expression \emph{risk ≈ likelihood × impact} is a useful prioritisation model, not a physical law. Organisations must define their own scales, state their assumptions and acknowledge uncertainty. A \textbf{control} is any measure that modifies likelihood, impact or both: multi-factor authentication lowers the likelihood of account takeover, while immutable backups lower the impact of ransomware.
+
+After controls are applied, \textbf{residual risk} remains and must be treated explicitly. There are four options: \emph{mitigate} it further, \emph{accept} it (by a manager who has the authority to do so), \emph{transfer} it where meaningful (for example, through insurance or contracts), or \emph{avoid} it by abandoning the risky activity. Mature programmes evaluate their control portfolio by coverage, independence and actual operating effectiveness—not by counting the number of products deployed.
+
+\section{The Parkerian Hexad and the McCumber Cube}\label{sec:1.6}
+The CIA triad is necessary but not always sufficient. Donn Parker proposed the \textbf{Parkerian Hexad}, which adds \emph{authenticity}, \emph{possession (control)} and \emph{utility} to the three classic properties. The additions capture situations that the triad describes poorly. When an encrypted laptop is stolen, confidentiality may remain intact, yet possession has clearly been lost. When encrypted data survive but the keys are irrecoverably lost, the data are still confidential, but they have lost all utility.
+
+The \textbf{McCumber Cube} offers a complementary, three-dimensional view. It examines security across the three \emph{states} of information (storage, processing and transmission), the three \emph{safeguard classes} (technology, policy and practice, and people) and the security goals themselves. Used together, the two models expose incomplete claims such as ``the data are encrypted, therefore they are secure''. A reviewer is prompted to ask: which properties are protected, in which state, and by which combination of technology, procedure and human behaviour?
+
+\section{Formal security models: Bell–LaPadula, Biba and Clark–Wilson}\label{sec:1.7}
+Principles tell us \emph{what} to aim for; formal models state \emph{precisely} which system behaviours are permitted, so that a design can be analysed and, ideally, proven correct. The \textbf{Bell–LaPadula (BLP)} model, developed for military systems in the 1970s, protects confidentiality through two rules: \emph{no read up} (a subject may not read objects at a higher classification) and \emph{no write down} (a subject may not write information to a lower classification, which would leak secrets).
+
+The \textbf{Biba} model is the integrity counterpart of BLP and inverts its rules: \emph{no read down} (a trusted process should not consume less trustworthy data) and \emph{no write up} (an untrusted subject may not modify more trustworthy objects). Commercial environments, however, care less about classification levels and more about correct transactions. The \textbf{Clark–Wilson} model therefore enforces integrity through \emph{well-formed transactions}, which may only be executed by authorised users via certified programs, combined with \emph{separation of duties} and complete audit trails.
+
+\begin{notebox}{Why this matters in practice}
+Mandatory integrity levels in Windows (Chapter 2) are a direct descendant of Biba, and the maker–checker approval of financial transfers (Chapter 5) is a textbook Clark–Wilson control.
+\end{notebox}
+
+\section{Evaluation criteria: from TCSEC to the Common Criteria}\label{sec:1.8}
+How can a customer know whether a product actually delivers the security its vendor claims? Evaluation schemes answer this question through independent, repeatable assessment. The U.S. \textbf{Trusted Computer System Evaluation Criteria (TCSEC)}, known as the \emph{Orange Book} (1983), graded operating systems in divisions from D (minimal protection) to A1 (formally verified design). Europe followed with \textbf{ITSEC}, which separated functionality from assurance.
+
+Both were superseded by the international \textbf{Common Criteria (ISO/IEC 15408)}. Under the Common Criteria, a \emph{Protection Profile} describes the security requirements for a class of products (for example, firewalls), and a vendor's \emph{Security Target} states how a specific product meets them. Accredited laboratories then evaluate the product to an \textbf{Evaluation Assurance Level (EAL1–EAL7)}. It is essential to understand what an EAL means: it measures the \emph{rigour} of the evaluation, not the \emph{strength} of the product. An EAL4 product has been examined more thoroughly than an EAL2 product, but only against the requirements its Security Target declared.
+
+\section*{Key terms}
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[CIA triad] Confidentiality, integrity and availability: the three core objectives of information security.
+  \item[Non-repudiation] Evidence that prevents a party from credibly denying an action it performed.
+  \item[Least privilege] Granting only the minimum authority required for a task, for the minimum time.
+  \item[Defence in depth] Layering independent, diverse controls so that no single failure is decisive.
+  \item[Residual risk] The risk that remains after controls have been applied and must be explicitly treated.
+  \item[EAL] Evaluation Assurance Level (Common Criteria): the rigour of an independent product evaluation.
+\end{description}
+
+\section*{Chapter summary}
+\begin{itemize}
+  \item Cybersecurity, information assurance and cyber resilience answer different questions: preventing compromise, trusting information and continuing to operate through failure.
+  \item The CIA triad remains the foundation, but authenticity, accountability, non-repudiation, possession and utility are needed to describe many real situations.
+  \item Security controls are chosen by principle—least privilege, defence in depth, fail-safe defaults, security by design—before they are chosen by product.
+  \item Risk emerges when a threat meets a vulnerability in a valuable asset; residual risk must always be explicitly mitigated, accepted, transferred or avoided.
+  \item Formal models and evaluation schemes make security claims precise and independently verifiable.
+\end{itemize}
+
+\section*{Review questions}
+\begin{enumerate}
+  \item Explain, with an example of your own, why cyber resilience remains necessary even in an organisation with excellent preventive controls.
+  \item Describe a scenario in which improving availability weakens confidentiality. How would you reconcile the two objectives?
+  \item Which Saltzer–Schroeder principle is violated when all administrators share one domain-administrator password? Justify your answer.
+  \item Why does a Common Criteria EAL rating not, on its own, tell you whether a product is suitable for your environment?
+\end{enumerate}

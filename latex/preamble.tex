@@ -1,0 +1,64 @@
+% ============================================================
+%  Preamble — shared by main-en.tex and main-el.tex
+%  Compile with XeLaTeX or LuaLaTeX (required for Greek + Unicode):
+%     latexmk -xelatex main-el.tex
+% ============================================================
+\usepackage{fontspec}
+\usepackage{polyglossia}
+% Fonts with full Greek coverage (TeX Live ships Libertinus; swap freely:
+% "GFS Didot", "Noto Serif", "CMU Serif", "Times New Roman" …)
+\setmainfont{Libertinus Serif}
+\setsansfont{Libertinus Sans}
+\setmonofont[Scale=0.9]{DejaVu Sans Mono}
+\newfontfamily\greekfont[Script=Greek]{Libertinus Serif}
+\newfontfamily\greekfontsf[Script=Greek]{Libertinus Sans}
+\newfontfamily\greekfonttt[Script=Greek,Scale=0.9]{DejaVu Sans Mono}
+
+\usepackage[a4paper,margin=2.6cm,headheight=14pt]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{booktabs,tabularx,array}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{HTML}{0E7490}
+\definecolor{accent2}{HTML}{B45309}
+\definecolor{ink}{HTML}{0F172A}
+
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\linespread{1.12}
+\setlist{itemsep=0.2em,topsep=0.4em}
+
+\titleformat{\chapter}[display]
+  {\normalfont\sffamily\color{ink}}
+  {\large\color{accent}\chaptertitlename\ \thechapter}
+  {0.4em}{\Huge\bfseries}
+\titlespacing*{\chapter}{0pt}{-10pt}{18pt}
+\titleformat{\section}{\normalfont\sffamily\Large\bfseries\color{ink}}{\color{accent}\thesection}{0.8em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\small\thepage}
+\fancyhead[RE]{\small\sffamily\leftmark}
+\fancyhead[LO]{\small\sffamily\rightmark}
+\renewcommand{\headrulewidth}{0.3pt}
+
+% --- chapter metadata line -------------------------------------------------
+\newcommand{\chaptermeta}[3]{%
+  {\sffamily\small\color{accent}#1\par}\vspace{0.3em}
+  {\sffamily\footnotesize\color{gray}#2 \quad·\quad #3\par}\vspace{1.2em}}
+
+% --- boxes ------------------------------------------------------------------
+\newtcolorbox{outcomesbox}[1]{enhanced,breakable,colback=accent!5,colframe=accent,
+  boxrule=0.6pt,arc=2mm,fonttitle=\sffamily\bfseries,title=#1}
+\newtcolorbox{examplebox}[1]{enhanced,breakable,colback=accent2!6,colframe=accent2,
+  boxrule=0.5pt,arc=2mm,fonttitle=\sffamily\bfseries,title=#1}
+\newtcolorbox{notebox}[1]{enhanced,breakable,colback=gray!6,colframe=gray!60,
+  boxrule=0.5pt,arc=2mm,fonttitle=\sffamily\bfseries,coltitle=ink,title=#1}
+\newtcolorbox{keybox}[1]{enhanced,breakable,colback=accent!8,colframe=accent!70!black,
+  boxrule=0.8pt,arc=2mm,fonttitle=\sffamily\bfseries,title=#1}
