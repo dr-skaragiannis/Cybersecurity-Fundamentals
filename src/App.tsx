@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BookMarked, ChevronRight, Columns2, FileCode2, Home as HomeIcon, Menu, Minus, MonitorPlay, Moon, Plus, Printer, ScrollText, Search as SearchIcon, ShieldCheck, Sun, Terminal, X } from "lucide-react";
+import { BookMarked, ChevronRight, Columns2, Home as HomeIcon, Menu, Minus, MonitorPlay, Moon, PanelLeftClose, PanelLeftOpen, Plus, Printer, ScrollText, Search as SearchIcon, Sun, Terminal, X } from "lucide-react";
 import type { Lang } from "./content/types";
 import { bookMeta, chapters, parts } from "./content/book";
 import { t } from "./i18n";
@@ -57,6 +57,7 @@ export default function App() {
   const [fontSize, setFontSize] = usePersist("cf2_font", 17);
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const [navOpen, setNavOpen] = useState(false);
+  const [navCollapsed, setNavCollapsed] = usePersist("cf2_nav_collapsed", false);
   const [searchOpen, setSearchOpen] = useState(false);
   const progress = useRef<HTMLDivElement>(null);
   const ui: Lang = mode === "both" ? "en" : mode;
@@ -105,6 +106,7 @@ export default function App() {
   }, []);
 
   const chapter = route.view === "ch" ? chapters.find((c) => c.n === route.n) : undefined;
+  const hasSidebar = route.view !== "pdf" && route.view !== "presentation" && route.view !== "sandbox" && route.view !== "clilab";
 
   const NavItem = ({ hash, icon: Icon, label, active }: { hash: string; icon: typeof HomeIcon; label: string; active: boolean }) => (
     <button onClick={() => go(hash)} className={cn("flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition", active ? "bg-slate-900 text-white dark:bg-teal-500/15 dark:text-teal-200" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800")}>
@@ -112,16 +114,23 @@ export default function App() {
     </button>
   );
 
+  const topNav: { hash: string; icon: typeof HomeIcon; label: string; active: boolean }[] = [
+    { hash: "", icon: HomeIcon, label: t("home", ui), active: route.view === "home" },
+    { hash: "sandbox", icon: Terminal, label: t("labSandboxNav", ui), active: route.view === "sandbox" },
+    { hash: "presentation", icon: MonitorPlay, label: t("presentation", ui), active: route.view === "presentation" },
+    { hash: "preface", icon: ScrollText, label: t("preface", ui), active: route.view === "preface" },
+  ];
+
   const sidebar = (
-    <nav className="flex h-full flex-col gap-1 overflow-y-auto p-4 scroll-thin">
-      <NavItem hash="" icon={HomeIcon} label={t("home", ui)} active={route.view === "home"} />
-      <NavItem hash="sandbox" icon={Terminal} label={t("labSandboxNav", ui)} active={route.view === "sandbox"} />
-      <NavItem hash="presentation" icon={MonitorPlay} label={t("presentation", ui)} active={route.view === "presentation"} />
-      <NavItem hash="pdf" icon={Printer} label={t("pdfBook", ui)} active={route.view === "pdf"} />
-      <NavItem hash="preface" icon={ScrollText} label={t("preface", ui)} active={route.view === "preface"} />
-      <NavItem hash="report" icon={ShieldCheck} label={t("report", ui)} active={route.view === "report"} />
-      <NavItem hash="latex" icon={FileCode2} label={t("latex", ui)} active={route.view === "latex"} />
-      <div className="mt-5 mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{t("contents", ui)}</div>
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-end border-b border-slate-200/80 px-3 py-2.5 dark:border-slate-800">
+        <button onClick={() => { setNavCollapsed(true); setNavOpen(false); }} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200" title={t("minimizeMenu", ui)} aria-label={t("minimizeMenu", ui)}>
+          <PanelLeftClose size={16} />
+        </button>
+      </div>
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-4 scroll-thin">
+        {topNav.map((n) => <NavItem key={n.hash} {...n} />)}
+        <div className="mt-5 mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{t("contents", ui)}</div>
       {parts.map((p) => {
         const chs = chapters.filter((c) => c.part === p.n);
         if (!chs.length) return null;
@@ -152,7 +161,26 @@ export default function App() {
           </div>
         );
       })}
-    </nav>
+      </nav>
+    </div>
+  );
+
+  const sidebarRail = (
+    <div className="flex h-full flex-col items-center gap-1.5 py-3">
+      <button onClick={() => setNavCollapsed(false)} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200" title={t("expandMenu", ui)} aria-label={t("expandMenu", ui)}>
+        <PanelLeftOpen size={16} />
+      </button>
+      <div className="my-1 h-px w-7 bg-slate-200 dark:bg-slate-800" />
+      {topNav.map((n) => {
+        const Icon = n.icon;
+        return (
+          <button key={n.hash} onClick={() => go(n.hash)} title={n.label} aria-label={n.label}
+            className={cn("flex h-9 w-9 items-center justify-center rounded-xl transition", n.active ? "bg-slate-900 text-white dark:bg-teal-500/15 dark:text-teal-200" : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800")}>
+            <Icon size={16} />
+          </button>
+        );
+      })}
+    </div>
   );
 
   const modes: { k: Mode; label: string; icon?: typeof Columns2 }[] = [
@@ -204,7 +232,9 @@ export default function App() {
       </header>
 
       {/* Desktop sidebar */}
-      <aside className="no-print fixed bottom-0 left-0 top-16 hidden w-72 border-r border-slate-200 bg-white/60 dark:border-slate-800 dark:bg-slate-950/60 lg:block">{sidebar}</aside>
+      <aside className={cn("no-print fixed bottom-0 left-0 top-16 hidden border-r border-slate-200 bg-white/60 transition-[width] duration-200 dark:border-slate-800 dark:bg-slate-950/60 lg:block", navCollapsed ? "w-16" : "w-72")}>
+        {navCollapsed ? sidebarRail : sidebar}
+      </aside>
 
       {/* Mobile drawer */}
       {navOpen && (
@@ -220,8 +250,8 @@ export default function App() {
         </div>
       )}
 
-      <main className={cn("px-4 py-8 sm:px-8 lg:px-12 lg:py-12", route.view !== "pdf" && route.view !== "presentation" && route.view !== "sandbox" && route.view !== "clilab" && "lg:ml-72")}>
-        <div className={cn("mx-auto", route.view === "pdf" ? "max-w-5xl" : route.view === "presentation" ? "max-w-6xl" : (route.view === "sandbox" || route.view === "clilab") ? "max-w-7xl" : "max-w-[1200px]")}>
+      <main className={cn("px-4 py-8 sm:px-8 lg:px-12 lg:py-12", hasSidebar && (navCollapsed ? "lg:ml-16" : "lg:ml-72"))}>
+        <div className={cn("mx-auto", route.view === "pdf" ? "max-w-5xl" : route.view === "presentation" ? "max-w-6xl" : (route.view === "sandbox" || route.view === "clilab") ? "max-w-7xl" : "w-[90%] lg:w-[85%]")}>
           {route.view === "home" && <Home lang={ui} go={go} />}
           {route.view === "sandbox" && (
             <FullLabSandboxView

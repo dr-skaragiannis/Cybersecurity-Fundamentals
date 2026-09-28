@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, Clock, GraduationCap, HelpCircle, ListChecks, Sparkles, Terminal, Wrench, FolderGit2 } from "lucide-react";
 import type { Chapter, Lang } from "../content/types";
 import { chapters, parts } from "../content/book";
@@ -46,37 +46,8 @@ export default function ChapterView({ ch, mode, fontSize, go }: { ch: Chapter; m
   const part = parts.find((p) => p.n === ch.part)!;
   const words = useMemo(() => chapterWords(ch, ui), [ch, ui]);
 
-  const anchors = useMemo(
-    () => [
-      { id: "intro", label: t("introduction", ui) },
-      ...ch.sections.map((s) => ({ id: `s-${s.id}`, label: `${s.id} ${s.title[ui]}` })),
-      { id: "terms", label: t("terms", ui) },
-      { id: "summary", label: t("summary", ui) },
-      { id: "questions", label: t("questions", ui) },
-      ...(ch.cliLab ? [{ id: "cli-lab", label: `CLI: ${t("cliLab", ui)}` }] : []),
-      ...(ch.handsOnLab ? [{ id: "hands-on-lab", label: `Lab: ${t("handsOnLab", ui)}` }] : []),
-      ...(ch.technicalProject ? [{ id: "project", label: `Project: ${t("technicalProject", ui)}` }] : []),
-      ...(ch.quiz ? [{ id: "quiz", label: `Quiz: ${t("quiz", ui)}` }] : []),
-    ],
-    [ch, ui]
-  );
-
-  const [active, setActive] = useState("intro");
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      (entries) => {
-        const vis = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (vis[0]) setActive(vis[0].target.id);
-      },
-      { rootMargin: "-90px 0px -65% 0px" }
-    );
-    anchors.forEach((a) => { const el = document.getElementById(a.id); if (el) obs.observe(el); });
-    return () => obs.disconnect();
-  }, [anchors]);
-
   return (
-    <div className="flex gap-10">
-      <article key={ch.n} className={cn("fade-up min-w-0 flex-1", mode === "both" ? "max-w-none" : "max-w-3xl mx-auto xl:mx-0")} style={{ fontSize }}>
+    <article key={ch.n} className={cn("fade-up min-w-0", mode === "both" ? "max-w-none" : "mx-auto w-full")} style={{ fontSize }}>
         {/* Header */}
         <header id="intro" className="section-anchor relative mb-10 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-teal-900 p-8 text-white shadow-xl sm:p-10">
           <div className="pointer-events-none absolute -right-10 -top-10 text-[12rem] font-black leading-none text-white/5 select-none">{ch.n}</div>
@@ -310,24 +281,5 @@ export default function ChapterView({ ch, mode, fontSize, go }: { ch: Chapter; m
           )}
         </nav>
       </article>
-
-      {/* On-this-page rail */}
-      {mode !== "both" && (
-        <aside className="no-print sticky top-24 hidden h-[calc(100vh-7rem)] w-60 shrink-0 overflow-y-auto scroll-thin xl:block">
-          <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{t("onThisPage", ui)}</div>
-          <ul className="space-y-0.5 border-l border-slate-200 dark:border-slate-800">
-            {anchors.map((a) => (
-              <li key={a.id}>
-                <a href={`#ch-${ch.n}:${a.id}`} onClick={(e) => { e.preventDefault(); go(`ch-${ch.n}:${a.id}`); }}
-                  className={cn("-ml-px block border-l-2 py-1.5 pl-3 text-[13px] leading-snug transition",
-                    active === a.id ? "border-teal-500 font-semibold text-teal-700 dark:text-teal-300" : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200")}>
-                  {a.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </aside>
-      )}
-    </div>
   );
 }

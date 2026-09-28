@@ -24,6 +24,8 @@ const S = {
   summary: { en: "Chapter summary", el: "Σύνοψη κεφαλαίου" },
   questions: { en: "Review questions", el: "Ερωτήσεις ανασκόπησης" },
   onThisPage: { en: "On this page", el: "Σε αυτή τη σελίδα" },
+  minimizeMenu: { en: "Minimize menu", el: "Ελαχιστοποίηση μενού" },
+  expandMenu: { en: "Expand menu", el: "Ανάπτυξη μενού" },
   prev: { en: "Previous", el: "Προηγούμενο" },
   next: { en: "Next", el: "Επόμενο" },
   search: { en: "Search the book…", el: "Αναζήτηση στο βιβλίο…" },
